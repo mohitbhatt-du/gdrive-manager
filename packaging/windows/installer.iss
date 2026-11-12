@@ -4,7 +4,7 @@
 #define MyAppName "GDrive Manager"
 #define MyAppVersion "1.0.1"
 #define MyAppPublisher "GDrive Manager Contributors"
-#define MyAppURL "https://github.com/mohit/gdrive-manager"
+#define MyAppURL "https://github.com/mohitbhatt-du/gdrive-manager"
 #define MyAppExeName "GDriveManager.exe"
 
 [Setup]

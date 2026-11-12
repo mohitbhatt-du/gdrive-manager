@@ -14,7 +14,7 @@ All contributors are expected to uphold our [Code of Conduct](CODE_OF_CONDUCT.md
 
 1. **Fork and clone the repository**:
    ```powershell
-   git clone https://github.com/mohit/gdrive-manager.git
+   git clone https://github.com/mohitbhatt-du/gdrive-manager.git
    cd gdrive-manager
    ```
 

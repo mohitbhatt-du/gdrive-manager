@@ -44,7 +44,7 @@ winget install WinFsp.WinFsp --accept-package-agreements --accept-source-agreeme
 ## 3. Installation Options
 
 ### Option 1: Windows Setup Installer (`GDriveManager-Setup-x64.exe`)
-1. Download `GDriveManager-Setup-x64.exe` from the [Latest GitHub Release](https://github.com/mohit/gdrive-manager/releases).
+1. Download `GDriveManager-Setup-x64.exe` from the [Latest GitHub Release](https://github.com/mohitbhatt-du/gdrive-manager/releases).
 2. Double-click the installer executable.
 3. Choose your desired destination folder (default: `C:\Program Files\GDriveManager` or `%LOCALAPPDATA%\Programs\GDriveManager`).
 4. Select optional shortcuts (Desktop shortcut, Start Menu shortcut).
@@ -61,7 +61,7 @@ If you wish to run or develop GDrive Manager directly from the Python repository
 
 1. **Clone the repository**:
    ```powershell
-   git clone https://github.com/mohit/gdrive-manager.git
+   git clone https://github.com/mohitbhatt-du/gdrive-manager.git
    cd gdrive-manager
    ```
 

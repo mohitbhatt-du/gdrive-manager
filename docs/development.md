@@ -17,7 +17,7 @@ This document provides instructions for developers contributing to the GDrive Ma
 
 1. **Clone the repository**:
    ```powershell
-   git clone https://github.com/mohit/gdrive-manager.git
+   git clone https://github.com/mohitbhatt-du/gdrive-manager.git
    cd gdrive-manager
    ```
 
