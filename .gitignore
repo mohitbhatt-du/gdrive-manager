@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# Logs
+logs/*.log
+*.log
+
+# Sensitive Data & Local State
+data/accounts.json
+data/credentials.json
+.rclone.conf
+*.zip
+
+# PyInstaller
+*.manifest
+*.spec
+!gdrive_manager.spec
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
