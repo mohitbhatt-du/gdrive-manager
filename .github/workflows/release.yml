@@ -80,11 +80,12 @@ jobs:
           }
           Write-Host "[*] Testing $exePath --version..."
           & $exePath --version
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "[-] Executable failed with exit code $LASTEXITCODE"
+          $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
+          if ($exitCode -ne 0) {
+            Write-Error "[-] Executable failed with exit code $exitCode"
             exit 1
           }
-          Write-Host "[✓] Executable verified: started and executed cleanly."
+          Write-Host "[+] Executable verified: started and executed cleanly."
 
       - name: Install Inno Setup Compiler
         shell: powershell
@@ -114,7 +115,7 @@ jobs:
             Write-Error "[-] Missing release artifact: $setupPath"
             exit 1
           }
-          Write-Host "[✓] Verified release artifacts:"
+          Write-Host "[+] Verified release artifacts:"
           Get-Item $zipPath, $setupPath | Select-Object Name, Length, LastWriteTime | Format-Table -AutoSize
 
       - name: Generate SHA256 Checksums
