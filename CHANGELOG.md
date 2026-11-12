@@ -1,0 +1,32 @@
+# Changelog
+
+All notable changes to GDrive Manager will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.0.0] - 2026-11-12
+
+### Added
+- **Multi-Account Google Drive Management**: Connect and manage multiple independent Google Drive accounts (Personal, Work, University) with separate credentials and drive assignments.
+- **Streaming Mode**: Mount Google Drive as native Windows drive letters (`G:`, `H:`, `I:`) via WinFsp and rclone with full VFS chunk caching (`--vfs-cache-mode full`).
+- **Offline Storage & Sync Engine**:
+  - Safe Copy (one-way copy without deleting destination files).
+  - Mirror Synchronization (source mirroring with destructive deletion safety warnings).
+  - Two-Way Bi-Sync with automated conflict resolution.
+  - Dry-Run preview mode for all sync operations.
+- **Hybrid Storage Mode**: Operate simultaneous virtual streaming drive letters and dedicated offline synchronization folders for the same Google account without conflict.
+- **Real-Time Telemetry & Transfer Queue**: Asynchronous transfer queue with live rclone JSON telemetry parsing on stderr (`--use-json-log --stats 1s`) displaying byte counters, speeds, and ETA countdowns.
+- **Enterprise Credential Security**: Hardware-encrypted OAuth 2.0 token vaulting using Windows Credential Manager (`keyring`) with zero plaintext secrets on disk.
+- **Windows System Integration**:
+  - System tray icon with background minimization (`pystray`) and quick mount/unmount context menu.
+  - Native Windows balloon notifications for mount, unmount, and transfer events.
+  - Optional Windows startup autorun toggle (`HKCU\...\Run`).
+  - Explorer integration: one-click drive opening in `explorer.exe`.
+- **First-Launch Setup Wizard**: Pre-flight checklist verifying bundled rclone, WinFsp virtual drive driver, and Windows Credential Manager.
+- **Diagnostics & In-App Logs Viewer**: Filterable log inspector (`INFO`, `WARNING`, `ERROR`, `DEBUG`) and direct Notepad launcher.
+- **Original Geometric Brand Identity**: Custom vector logo and multi-resolution Windows icon (`assets/branding/icon.ico`).
+- **Comprehensive Automated Test Suite**: 50 unit and integration tests covering core business logic, models, and dialogs.
+- **Standalone Packaging**: PyInstaller build pipeline and portable Windows distribution (`GDriveManager-Windows-x64.zip`).
