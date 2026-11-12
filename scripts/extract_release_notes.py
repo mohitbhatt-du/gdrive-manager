@@ -4,6 +4,13 @@ import re
 import sys
 from pathlib import Path
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 def extract_notes_for_version(version: str) -> str:
     # Normalize version: strip leading 'v'
@@ -43,7 +50,7 @@ def main():
     notes = extract_notes_for_version(version)
     if out_file:
         Path(out_file).write_text(notes, encoding="utf-8")
-        print(f"[✓] Release notes written to {out_file}")
+        print(f"[+] Release notes written to {out_file}")
     else:
         print(notes)
 

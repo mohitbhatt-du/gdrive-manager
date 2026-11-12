@@ -4,6 +4,13 @@ import hashlib
 import sys
 from pathlib import Path
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 def calculate_sha256(file_path: Path) -> str:
     sha = hashlib.sha256()
@@ -30,14 +37,14 @@ def main():
         if file_path.exists():
             h = calculate_sha256(file_path)
             checksums.append(f"{h}  {filename}")
-            print(f"[✓] {filename}: {h}")
+            print(f"[+] {filename}: {h}")
         else:
             print(f"[!] Warning: {filename} not found in dist/")
 
     if checksums:
         out_file = dist_dir / "SHA256SUMS.txt"
         out_file.write_text("\n".join(checksums) + "\n", encoding="ascii")
-        print(f"\n[✓] Checksum manifest written to: {out_file}")
+        print(f"\n[+] Checksum manifest written to: {out_file}")
     else:
         print("[-] No release files found to checksum.")
         sys.exit(1)

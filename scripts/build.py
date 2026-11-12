@@ -7,6 +7,14 @@ import sys
 import zipfile
 from pathlib import Path
 
+# Ensure stdout/stderr handle UTF-8 cleanly on Windows
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 def get_project_dir() -> Path:
     return Path(__file__).resolve().parent.parent
@@ -73,7 +81,7 @@ def build_executable():
         sys.exit(1)
 
     size_mb = dist_exe.stat().st_size / (1024 * 1024)
-    print(f"[✓] Executable built successfully: {dist_exe.resolve()} ({size_mb:.2f} MB)")
+    print(f"[+] Executable built successfully: {dist_exe.resolve()} ({size_mb:.2f} MB)")
 
     # 6. Create Portable ZIP archive
     zip_name = "GDriveManager-Windows-x64.zip"
@@ -88,10 +96,10 @@ def build_executable():
                 zf.write(file_path, arcname)
 
     zip_size_mb = zip_path.stat().st_size / (1024 * 1024)
-    print(f"[✓] Portable distribution archive created: {zip_path.resolve()} ({zip_size_mb:.2f} MB)")
+    print(f"[+] Portable distribution archive created: {zip_path.resolve()} ({zip_size_mb:.2f} MB)")
 
     print("=" * 65)
-    print("[✓] Distribution Build Completed Successfully!")
+    print("[+] Distribution Build Completed Successfully!")
     print(f"    - Onedir Folder: {dist_dir}")
     print(f"    - Executable:    {dist_exe}")
     print(f"    - Portable ZIP:  {zip_path}")

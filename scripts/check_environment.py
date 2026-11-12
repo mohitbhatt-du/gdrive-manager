@@ -4,6 +4,13 @@ import platform
 import sys
 from pathlib import Path
 
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 
 def check_env():
     print("=" * 65)
@@ -23,7 +30,7 @@ def check_env():
         print("[-] WARNING: GDrive Manager is designed exclusively for Microsoft Windows.")
         all_ok = False
     else:
-        print("[✓] Supported Windows platform detected.")
+        print("[+] Supported Windows platform detected.")
 
     # 2. Python Version Check
     py_ver = sys.version_info
@@ -32,7 +39,7 @@ def check_env():
         print("[-] WARNING: Python >= 3.12 is recommended.")
         all_ok = False
     else:
-        print("[✓] Python version requirement met.")
+        print("[+] Python version requirement met.")
 
     # 3. Bundled Rclone Check
     from app.services.rclone_service import RcloneService
@@ -41,7 +48,7 @@ def check_env():
     exe = svc.rclone_exe
     if exe and Path(exe).exists():
         ver = svc.get_version() or "v1.76.0"
-        print(f"[✓] Rclone Engine: Found ({exe}) - Version: {ver}")
+        print(f"[+] Rclone Engine: Found ({exe}) - Version: {ver}")
     else:
         print("[-] Rclone Engine: NOT FOUND in bundled directory or PATH.")
         all_ok = False
@@ -50,7 +57,7 @@ def check_env():
     from app.utils.platform_checks import is_winfsp_installed
 
     if is_winfsp_installed():
-        print("[✓] WinFsp Driver: Active and ready for virtual drive mounting.")
+        print("[+] WinFsp Driver: Active and ready for virtual drive mounting.")
     else:
         print("[!] WinFsp Driver: Not installed. Run 'winget install WinFsp.WinFsp' for streaming mode.")
 
@@ -63,14 +70,14 @@ def check_env():
         test_file = app_data / ".perm_check"
         test_file.touch()
         test_file.unlink()
-        print("[✓] User LocalAppData write permissions verified.")
+        print("[+] User LocalAppData write permissions verified.")
     except Exception as e:
         print(f"[-] AppData write permission failed: {e}")
         all_ok = False
 
     print("=" * 65)
     if all_ok:
-        print("[✓] Environment verification passed successfully!")
+        print("[+] Environment verification passed successfully!")
     else:
         print("[!] Environment verification completed with warnings/errors.")
     print("=" * 65)
