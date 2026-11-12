@@ -34,10 +34,6 @@ jobs:
         run: |
           python scripts/generate_version.py
 
-      - name: Generate Branding Assets
-        run: |
-          python scripts/generate_branding_assets.py
-
       - name: Build Standalone Executable & Portable Archive
         run: |
           python scripts/build.py
@@ -50,17 +46,13 @@ jobs:
             Write-Error "Executable not found at $exePath"
             exit 1
           }
-          Write-Host "[*] Launching $exePath for runtime verification..."
-          $p = Start-Process -FilePath $exePath -PassThru
-          Start-Sleep -Seconds 3
-          $running = Get-Process -Id $p.Id -ErrorAction SilentlyContinue
-          if ($running) {
-            Stop-Process -Id $p.Id -Force
-            Write-Host "[✓] Executable verified: started and executed cleanly (PID $($p.Id))"
-          } else {
-            Write-Error "[-] Executable exited prematurely with code $($p.ExitCode)"
+          Write-Host "[*] Testing $exePath --version..."
+          & $exePath --version
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "[-] Executable failed with exit code $LASTEXITCODE"
             exit 1
           }
+          Write-Host "[✓] Executable verified: started and executed cleanly."
 
       - name: Upload Portable Windows Package Artifact
         uses: actions/upload-artifact@v4

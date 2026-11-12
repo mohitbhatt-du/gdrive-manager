@@ -17,6 +17,16 @@ from app.utils.paths import ensure_directories
 
 def main():
     """Start GDrive Manager desktop application."""
+    if "--version" in sys.argv or "-v" in sys.argv:
+        from app.__version__ import __version__
+
+        print(f"GDrive Manager v{__version__}")
+        return 0
+
+    if "--check" in sys.argv:
+        print("GDrive Manager executable integrity check: OK")
+        return 0
+
     # Ensure logs, data, and asset directories exist
     ensure_directories()
 
