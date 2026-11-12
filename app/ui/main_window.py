@@ -51,7 +51,7 @@ class MainWindow(ctk.CTk):
         self.minsize(Dimensions.WINDOW_MIN_WIDTH, Dimensions.WINDOW_MIN_HEIGHT)
         self.configure(fg_color=Colors.BG_MAIN)
         self.enable_tray = enable_tray
-        self._notified_jobs = set()
+        self._notified_jobs: set[str] = set()
 
         # Set Windows AppUserModelID & Window/Taskbar Icon
         try:

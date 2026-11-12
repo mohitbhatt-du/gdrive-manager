@@ -1,7 +1,7 @@
 """Secure credential storage using Windows Credential Manager via keyring."""
 
 import json
-from typing import Any
+from typing import Any, cast
 
 import keyring
 
@@ -33,7 +33,9 @@ class CredentialService:
         try:
             payload = keyring.get_password(SERVICE_NAME, account_id)
             if payload:
-                return json.loads(payload)
+                data = json.loads(payload)
+                if isinstance(data, dict):
+                    return cast(dict[str, Any], data)
             return None
         except Exception as e:
             logger.error(f"Failed to retrieve credential for {account_id}: {e}")

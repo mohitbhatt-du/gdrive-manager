@@ -57,7 +57,9 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-icon_path = str(project_dir / "assets" / "icons" / "app_icon.ico")
+icon_path = str(project_dir / "assets" / "branding" / "icon.ico")
+if not os.path.exists(icon_path):
+    icon_path = str(project_dir / "assets" / "icons" / "app_icon.ico")
 if not os.path.exists(icon_path):
     icon_path = None
 

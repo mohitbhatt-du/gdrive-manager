@@ -1,7 +1,6 @@
 """Unit tests for StorageDetailsDialog modal."""
 
 from unittest.mock import MagicMock, patch
-import pytest
 
 from app.models.account import Account
 from app.ui.dialogs.storage_details_dialog import StorageDetailsDialog
@@ -15,7 +14,7 @@ def test_storage_details_dialog_instantiation(main_app):
         remote_name="gdrive_test",
         drive_letter="G:",
         used_storage_bytes=5 * 1024 * 1024 * 1024,
-        total_storage_bytes=15 * 1024 * 1024 * 1024
+        total_storage_bytes=15 * 1024 * 1024 * 1024,
     )
 
     storage_mgr = MagicMock()
@@ -32,7 +31,7 @@ def test_storage_details_dialog_instantiation(main_app):
         main_app,
         account=account,
         storage_manager=storage_mgr,
-        on_cache_purged=lambda: purged_called.append(True)
+        on_cache_purged=lambda: purged_called.append(True),
     )
     main_app.update_idletasks()
     assert dlg.winfo_exists()

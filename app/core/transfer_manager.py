@@ -75,25 +75,26 @@ class TransferManager:
                 self._active_processes[job.id] = process
 
             # Read stderr line-by-line for live JSON stats
-            for line in iter(process.stderr.readline, ""):
-                line = line.strip()
-                if not line:
-                    continue
+            if process.stderr:
+                for line in iter(process.stderr.readline, ""):
+                    line = line.strip()
+                    if not line:
+                        continue
 
-                if line.startswith("{") and line.endswith("}"):
-                    try:
-                        record = json.loads(line)
-                        stats = record.get("stats")
-                        if stats:
-                            job.transferred_bytes = stats.get("bytes", job.transferred_bytes)
-                            total = stats.get("totalBytes", job.total_bytes)
-                            if total > 0:
-                                job.total_bytes = total
-                            job.speed_bytes_per_sec = float(stats.get("speed", 0.0))
-                            job.eta_seconds = stats.get("eta")
-                            self._notify(job)
-                    except Exception:
-                        pass
+                    if line.startswith("{") and line.endswith("}"):
+                        try:
+                            record = json.loads(line)
+                            stats = record.get("stats")
+                            if stats:
+                                job.transferred_bytes = stats.get("bytes", job.transferred_bytes)
+                                total = stats.get("totalBytes", job.total_bytes)
+                                if total > 0:
+                                    job.total_bytes = total
+                                job.speed_bytes_per_sec = float(stats.get("speed", 0.0))
+                                job.eta_seconds = stats.get("eta")
+                                self._notify(job)
+                        except Exception:
+                            pass
 
             process.wait()
             ret = process.returncode
@@ -115,7 +116,8 @@ class TransferManager:
                 job.status = "Failed"
                 err_detail = ""
                 try:
-                    err_detail = process.stderr.read()
+                    if process.stderr:
+                        err_detail = process.stderr.read()
                 except Exception:
                     pass
                 job.error_message = err_detail.strip() or f"Process exited with code {ret}"

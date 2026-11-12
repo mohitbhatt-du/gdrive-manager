@@ -29,14 +29,15 @@ class StorageBreakdown:
     is_quota_exact: bool = True
 
     @staticmethod
-    def format_bytes(b: int) -> str:
-        if b <= 0:
+    def format_bytes(b: int | float) -> str:
+        val = float(b)
+        if val <= 0:
             return "0 B"
         for unit in ["B", "KB", "MB", "GB", "TB"]:
-            if b < 1024.0:
-                return f"{b:.1f} {unit}"
-            b /= 1024.0
-        return f"{b:.1f} PB"
+            if val < 1024.0:
+                return f"{val:.1f} {unit}"
+            val /= 1024.0
+        return f"{val:.1f} PB"
 
     @property
     def formatted_cloud_used(self) -> str:

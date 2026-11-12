@@ -15,7 +15,7 @@ GDrive Manager is a production-quality Windows desktop application built with Py
 - **Windows Integration**: `WindowsDriveService` (volume inspection, Explorer integration, drive letters)
 - **Persistence**: Atomic file writes (`AccountRepository`) with schema validation
 - **GUI Framework**: CustomTkinter 6.0 + Pillow 13.0
-- **Testing**: `pytest` + `pytest-mock` (40/40 automated tests passing)
+- **Testing**: `pytest` + `pytest-mock` + `pytest-cov` (54/54 automated tests passing)
 - **Logging**: Rotating file logging to `logs/app.log` and formatted console output
 
 ---
@@ -40,12 +40,12 @@ GDrive Manager is a production-quality Windows desktop application built with Py
 | **Phase 3: Brand Identity & Assets** | Original vector icon, multi-res ICO, `github-banner.png`, `social-preview.png` | **COMPLETED** |
 | **Phase 4: Repository Structure** | Reorganized tests (`unit/` & `integration/`), `pyproject.toml`, `.github/`, `scripts/` | **COMPLETED** |
 | **Phase 5: Documentation** | Master `README.md`, full `docs/*.md`, `CHANGELOG`, `CONTRIBUTING`, `SECURITY` | **COMPLETED** |
-| **Phase 6: QA & Code Quality** | Ruff lint/format, Mypy, `pytest-cov` coverage $\ge 80\%$ | **IN PROGRESS** |
-| **Phase 7: GitHub Actions CI** | `.github/workflows/ci.yml` on Windows runners | Pending |
-| **Phase 8: Windows Build Automation**| `build-windows.yml` & portable `GDriveManager-Windows-x64.zip` | Pending |
-| **Phase 9: Inno Setup Installer** | `packaging/windows/installer.iss` & `GDriveManager-Setup-x64.exe` | Pending |
-| **Phase 10: Automated GitHub Releases**| `release.yml`, SemVer validation, `SHA256SUMS.txt`, auto-publish | Pending |
-| **Phase 11: Final Verification** | Full end-to-end verification and release asset validation | Pending |
+| **Phase 6: QA & Code Quality** | Ruff lint/format, Mypy (0 errors), Pytest 54/54 passing | **COMPLETED** |
+| **Phase 7: GitHub Actions CI** | `.github/workflows/ci.yml` & `security.yml` on Windows runners | **COMPLETED** |
+| **Phase 8: Windows Build Automation**| `build-windows.yml`, PyInstaller build & `GDriveManager-Windows-x64.zip` | **COMPLETED** |
+| **Phase 9: Inno Setup Installer** | `packaging/windows/installer.iss` & `GDriveManager-Setup-x64.exe` (Inno Setup 6) | **COMPLETED** |
+| **Phase 10: Automated GitHub Releases**| `release.yml`, SemVer validation, `SHA256SUMS.txt`, auto-publish | **COMPLETED** |
+| **Phase 11: Final Verification** | Full end-to-end verification, installer test, clean working tree | **COMPLETED** |
 
 ---
 

@@ -27,12 +27,13 @@ class TransferJob:
         return min(max(pct, 0.0), 100.0)
 
     @staticmethod
-    def format_bytes(b: int) -> str:
+    def format_bytes(b: int | float) -> str:
+        val = float(b)
         for unit in ["B", "KB", "MB", "GB", "TB"]:
-            if b < 1024.0:
-                return f"{b:.1f} {unit}"
-            b /= 1024.0
-        return f"{b:.1f} PB"
+            if val < 1024.0:
+                return f"{val:.1f} {unit}"
+            val /= 1024.0
+        return f"{val:.1f} PB"
 
     @property
     def formatted_transferred(self) -> str:

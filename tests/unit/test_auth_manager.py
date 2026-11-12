@@ -1,7 +1,6 @@
 """Unit tests for AuthManager OAuth 2.0 lifecycle."""
 
 from unittest.mock import MagicMock, patch
-import pytest
 
 from app.core.auth_manager import AuthManager
 from app.models.account import Account
@@ -28,7 +27,7 @@ def test_auth_manager_missing_rclone():
         cache_size="10G",
         on_status_update=on_status,
         on_success=on_success,
-        on_error=on_error
+        on_error=on_error,
     )
 
     on_error.assert_called_once()
@@ -45,7 +44,7 @@ def test_auth_manager_duplicate_remote():
         email="work@gmail.com",
         display_name="Work",
         remote_name="gdrive_work",
-        drive_letter="H:"
+        drive_letter="H:",
     )
     account_repo.load_all.return_value = [existing_acc]
     cred_svc = MagicMock()
@@ -65,7 +64,7 @@ def test_auth_manager_duplicate_remote():
         cache_size="10G",
         on_status_update=on_status,
         on_success=on_success,
-        on_error=on_error
+        on_error=on_error,
     )
 
     on_error.assert_called_once()
@@ -103,7 +102,7 @@ def test_auth_manager_successful_flow():
             cache_size="10G",
             on_status_update=on_status,
             on_success=on_success,
-            on_error=on_error
+            on_error=on_error,
         )
 
     on_error.assert_not_called()
