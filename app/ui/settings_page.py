@@ -3,15 +3,17 @@
 import os
 import subprocess
 import threading
-from pathlib import Path
-from typing import Optional, List, Dict, Callable
+from collections.abc import Callable
 from tkinter import filedialog, messagebox
+
 import customtkinter as ctk
-from app.config.theme import Colors, Fonts, Dimensions
-from app.utils.paths import LOGS_DIR, get_app_data_dir
-from app.utils.platform_checks import is_winfsp_installed, is_rclone_installed, get_rclone_version
+
+from app.config.theme import Colors, Dimensions, Fonts
 from app.services.rclone_service import RcloneService
+from app.utils.paths import LOGS_DIR, get_app_data_dir
+from app.utils.platform_checks import is_winfsp_installed
 from app.utils.startup import is_startup_enabled, set_startup_enabled
+
 
 class SettingsPage(ctk.CTkFrame):
     """View dedicated to app configuration, storage limits, startup options, and diagnostics."""
@@ -19,10 +21,10 @@ class SettingsPage(ctk.CTkFrame):
     def __init__(
         self,
         master,
-        rclone_service: Optional[RcloneService] = None,
-        on_view_logs: Optional[Callable[[], None]] = None,
-        on_rerun_wizard: Optional[Callable[[], None]] = None,
-        **kwargs
+        rclone_service: RcloneService | None = None,
+        on_view_logs: Callable[[], None] | None = None,
+        on_rerun_wizard: Callable[[], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.rclone_service = rclone_service or RcloneService()
@@ -44,10 +46,7 @@ class SettingsPage(ctk.CTkFrame):
         header.pack(fill="x", padx=28, pady=(24, 16))
 
         title = ctk.CTkLabel(
-            header,
-            text="Application Settings",
-            font=Fonts.HERO,
-            text_color=Colors.TEXT_PRIMARY
+            header, text="Application Settings", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY
         )
         title.pack(anchor="w")
 
@@ -55,7 +54,7 @@ class SettingsPage(ctk.CTkFrame):
             header,
             text="Configure system startup behavior, VFS cache quotas, credentials storage, and diagnostics",
             font=Fonts.SUBTITLE,
-            text_color=Colors.TEXT_SECONDARY
+            text_color=Colors.TEXT_SECONDARY,
         )
         subtitle.pack(anchor="w", pady=(2, 0))
 
@@ -68,7 +67,7 @@ class SettingsPage(ctk.CTkFrame):
             scroll,
             title="Windows Integration",
             description="Manage startup preferences and desktop shell behavior",
-            build_func=self._build_sys_integration_fields
+            build_func=self._build_sys_integration_fields,
         )
 
         # 2. VFS Storage & Cache Section
@@ -76,7 +75,7 @@ class SettingsPage(ctk.CTkFrame):
             scroll,
             title="VFS Streaming & Cache Policies",
             description="Control local virtual filesystem cache allocation and expiration",
-            build_func=self._build_cache_fields
+            build_func=self._build_cache_fields,
         )
 
         # 3. Cloud Engine & Drivers Status
@@ -84,7 +83,7 @@ class SettingsPage(ctk.CTkFrame):
             scroll,
             title="Storage Engine Diagnostics",
             description="Status of system-level cloud mounting utilities (rclone & WinFsp)",
-            build_func=self._build_diagnostics_fields
+            build_func=self._build_diagnostics_fields,
         )
 
         # 4. Logs & Troubleshooting
@@ -92,7 +91,7 @@ class SettingsPage(ctk.CTkFrame):
             scroll,
             title="Logs & Diagnostics",
             description="Inspect detailed application and subprocess execution logs",
-            build_func=self._build_logs_fields
+            build_func=self._build_logs_fields,
         )
 
     def _build_section_card(self, parent, title: str, description: str, build_func):
@@ -101,7 +100,7 @@ class SettingsPage(ctk.CTkFrame):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         card.pack(fill="x", pady=(0, 16))
 
@@ -123,7 +122,7 @@ class SettingsPage(ctk.CTkFrame):
             variable=self.start_with_win,
             command=self._on_toggle_startup,
             font=Fonts.BODY,
-            fg_color=Colors.ACCENT_PRIMARY
+            fg_color=Colors.ACCENT_PRIMARY,
         )
         chk1.pack(anchor="w", pady=(0, 8))
 
@@ -132,7 +131,7 @@ class SettingsPage(ctk.CTkFrame):
             text="Minimize to system tray when closing the main window",
             variable=self.minimize_to_tray,
             font=Fonts.BODY,
-            fg_color=Colors.ACCENT_PRIMARY
+            fg_color=Colors.ACCENT_PRIMARY,
         )
         chk2.pack(anchor="w")
 
@@ -144,7 +143,9 @@ class SettingsPage(ctk.CTkFrame):
             self.start_with_win.set(not val)
 
     def _build_cache_fields(self, parent):
-        path_lbl = ctk.CTkLabel(parent, text="Default VFS Cache Directory:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        path_lbl = ctk.CTkLabel(
+            parent, text="Default VFS Cache Directory:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         path_lbl.pack(anchor="w", pady=(0, 4))
 
         p_row = ctk.CTkFrame(parent, fg_color="transparent")
@@ -156,7 +157,7 @@ class SettingsPage(ctk.CTkFrame):
             font=Fonts.BODY,
             fg_color=Colors.INPUT_BG,
             border_color=Colors.INPUT_BORDER,
-            height=34
+            height=34,
         )
         entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
@@ -169,7 +170,7 @@ class SettingsPage(ctk.CTkFrame):
             border_width=1,
             border_color=Colors.CARD_BORDER,
             height=34,
-            command=self._browse_cache_dir
+            command=self._browse_cache_dir,
         )
         b_btn.pack(side="right")
 
@@ -180,7 +181,9 @@ class SettingsPage(ctk.CTkFrame):
         s_box = ctk.CTkFrame(opts_row, fg_color="transparent")
         s_box.pack(side="left", padx=(0, 24))
 
-        s_lbl = ctk.CTkLabel(s_box, text="Maximum Cache Limit:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        s_lbl = ctk.CTkLabel(
+            s_box, text="Maximum Cache Limit:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         s_lbl.pack(anchor="w", pady=(0, 4))
 
         s_menu = ctk.CTkOptionMenu(
@@ -189,7 +192,7 @@ class SettingsPage(ctk.CTkFrame):
             variable=self.default_cache_size,
             fg_color=Colors.INPUT_BG,
             button_color=Colors.ACCENT_PRIMARY,
-            height=34
+            height=34,
         )
         s_menu.pack(anchor="w")
 
@@ -197,7 +200,9 @@ class SettingsPage(ctk.CTkFrame):
         e_box = ctk.CTkFrame(opts_row, fg_color="transparent")
         e_box.pack(side="left")
 
-        e_lbl = ctk.CTkLabel(e_box, text="Cache Expiration (TTL):", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        e_lbl = ctk.CTkLabel(
+            e_box, text="Cache Expiration (TTL):", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         e_lbl.pack(anchor="w", pady=(0, 4))
 
         e_menu = ctk.CTkOptionMenu(
@@ -206,7 +211,7 @@ class SettingsPage(ctk.CTkFrame):
             variable=self.default_cache_expiry,
             fg_color=Colors.INPUT_BG,
             button_color=Colors.ACCENT_PRIMARY,
-            height=34
+            height=34,
         )
         e_menu.pack(anchor="w")
 
@@ -216,17 +221,18 @@ class SettingsPage(ctk.CTkFrame):
         rclone_ver = self.rclone_service.get_version() or "Not Installed"
 
         # WinFsp status
-        fsp_st = "INSTALLED (Ready to mount virtual drives)" if winfsp_ok else "NOT DETECTED (Required for drive letters)"
+        fsp_st = (
+            "INSTALLED (Ready to mount virtual drives)"
+            if winfsp_ok
+            else "NOT DETECTED (Required for drive letters)"
+        )
         fsp_color = Colors.STATUS_MOUNTED if winfsp_ok else Colors.STATUS_WARNING
 
         fsp_box = ctk.CTkFrame(parent, fg_color="transparent")
         fsp_box.pack(fill="x", pady=(0, 6))
 
         fsp_lbl = ctk.CTkLabel(
-            fsp_box,
-            text=f"• WinFsp Driver: {fsp_st}",
-            font=Fonts.BODY,
-            text_color=fsp_color
+            fsp_box, text=f"• WinFsp Driver: {fsp_st}", font=Fonts.BODY, text_color=fsp_color
         )
         fsp_lbl.pack(side="left")
 
@@ -240,7 +246,7 @@ class SettingsPage(ctk.CTkFrame):
                 border_width=1,
                 border_color=Colors.CARD_BORDER,
                 height=26,
-                command=self._install_winfsp
+                command=self._install_winfsp,
             )
             winfsp_btn.pack(side="left", padx=(12, 0))
 
@@ -248,14 +254,16 @@ class SettingsPage(ctk.CTkFrame):
         rcl_box = ctk.CTkFrame(parent, fg_color="transparent")
         rcl_box.pack(fill="x", pady=(0, 8))
 
-        init_rcl_text = f"• rclone Engine: AVAILABLE ({rclone_ver})" if rclone_ok else "• rclone Engine: NOT DETECTED"
+        init_rcl_text = (
+            f"• rclone Engine: AVAILABLE ({rclone_ver})" if rclone_ok else "• rclone Engine: NOT DETECTED"
+        )
         self.rcl_status_var.set(init_rcl_text)
 
         self.rcl_lbl = ctk.CTkLabel(
             rcl_box,
             textvariable=self.rcl_status_var,
             font=Fonts.BODY,
-            text_color=Colors.STATUS_MOUNTED if rclone_ok else Colors.STATUS_WARNING
+            text_color=Colors.STATUS_MOUNTED if rclone_ok else Colors.STATUS_WARNING,
         )
         self.rcl_lbl.pack(side="left")
 
@@ -267,7 +275,7 @@ class SettingsPage(ctk.CTkFrame):
                 fg_color=Colors.ACCENT_PRIMARY,
                 hover_color=Colors.ACCENT_HOVER,
                 height=26,
-                command=self._download_rclone
+                command=self._download_rclone,
             )
             self.download_rcl_btn.pack(side="left", padx=(12, 0))
 
@@ -276,7 +284,7 @@ class SettingsPage(ctk.CTkFrame):
             parent,
             text="• Credential Vault: Windows Credential Manager Active (AES Hardware Encrypted)",
             font=Fonts.BODY,
-            text_color=Colors.STATUS_MOUNTED
+            text_color=Colors.STATUS_MOUNTED,
         )
         sec_lbl.pack(anchor="w", pady=(0, 10))
 
@@ -293,7 +301,7 @@ class SettingsPage(ctk.CTkFrame):
             border_width=1,
             border_color=Colors.CARD_BORDER,
             height=32,
-            command=self._handle_rerun_wizard
+            command=self._handle_rerun_wizard,
         )
         wiz_btn.pack(side="left")
 
@@ -307,17 +315,27 @@ class SettingsPage(ctk.CTkFrame):
 
         def _worker():
             ok = self.rclone_service.download_bundled_rclone()
+
             def _ui():
                 if ok:
                     ver = self.rclone_service.get_version() or "Bundled"
                     self.rcl_status_var.set(f"• rclone Engine: AVAILABLE ({ver})")
                     self.rcl_lbl.configure(text_color=Colors.STATUS_MOUNTED)
                     self.download_rcl_btn.pack_forget()
-                    messagebox.showinfo("Setup Complete", f"rclone has been downloaded and configured at:\n{self.rclone_service.rclone_exe}")
+                    messagebox.showinfo(
+                        "Setup Complete",
+                        f"rclone has been downloaded and configured at:\n{self.rclone_service.rclone_exe}",
+                    )
                 else:
-                    self.rcl_status_var.set("• rclone Engine: Download failed. You can install via winget install Rclone.Rclone")
+                    self.rcl_status_var.set(
+                        "• rclone Engine: Download failed. You can install via winget install Rclone.Rclone"
+                    )
                     self.download_rcl_btn.configure(state="normal", text="Retry Download")
-                    messagebox.showerror("Download Error", "Could not download rclone automatically. Please run 'winget install Rclone.Rclone' in terminal.")
+                    messagebox.showerror(
+                        "Download Error",
+                        "Could not download rclone automatically. Please run 'winget install Rclone.Rclone' in terminal.",
+                    )
+
             self.after(0, _ui)
 
         threading.Thread(target=_worker, daemon=True).start()
@@ -325,12 +343,23 @@ class SettingsPage(ctk.CTkFrame):
     def _install_winfsp(self):
         res = messagebox.askyesno(
             "Install WinFsp",
-            "WinFsp provides Windows virtual drive mounting.\nWould you like to run 'winget install WinFsp.WinFsp'?"
+            "WinFsp provides Windows virtual drive mounting.\nWould you like to run 'winget install WinFsp.WinFsp'?",
         )
         if res:
             try:
-                subprocess.Popen(["winget", "install", "WinFsp.WinFsp", "--accept-package-agreements", "--accept-source-agreements"])
-                messagebox.showinfo("Installer Launched", "WinFsp installer has been launched. Please follow the on-screen installer prompts.")
+                subprocess.Popen(
+                    [
+                        "winget",
+                        "install",
+                        "WinFsp.WinFsp",
+                        "--accept-package-agreements",
+                        "--accept-source-agreements",
+                    ]
+                )
+                messagebox.showinfo(
+                    "Installer Launched",
+                    "WinFsp installer has been launched. Please follow the on-screen installer prompts.",
+                )
             except Exception as e:
                 messagebox.showerror("Error", f"Could not launch winget: {e}")
 
@@ -345,7 +374,7 @@ class SettingsPage(ctk.CTkFrame):
             fg_color=Colors.ACCENT_PRIMARY,
             hover_color=Colors.ACCENT_HOVER,
             height=34,
-            command=self._handle_view_logs
+            command=self._handle_view_logs,
         )
         view_logs_btn.pack(side="left", padx=(0, 10))
 
@@ -358,7 +387,7 @@ class SettingsPage(ctk.CTkFrame):
             border_width=1,
             border_color=Colors.CARD_BORDER,
             height=34,
-            command=self._open_logs_dir
+            command=self._open_logs_dir,
         )
         open_logs_btn.pack(side="left")
 
@@ -375,5 +404,5 @@ class SettingsPage(ctk.CTkFrame):
         LOGS_DIR.mkdir(parents=True, exist_ok=True)
         try:
             os.startfile(str(LOGS_DIR))
-        except Exception as e:
+        except Exception:
             messagebox.showinfo("Logs Directory", f"Logs folder: {LOGS_DIR}")

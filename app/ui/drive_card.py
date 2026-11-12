@@ -1,10 +1,13 @@
 """Reusable modern Drive Card component for Google Drive accounts."""
 
-from typing import Callable, Optional
+from collections.abc import Callable
+
 import customtkinter as ctk
+
+from app.config.theme import Colors, Dimensions, Fonts
 from app.models.account import Account
-from app.config.theme import Colors, Fonts, Dimensions
-from app.ui.assets import get_gdrive_icon, get_symbol_icon, get_drive_hardware_icon
+from app.ui.assets import get_gdrive_icon, get_symbol_icon
+
 
 class DriveCard(ctk.CTkFrame):
     """Modern dark-themed Drive Card displaying account status, storage, and actions."""
@@ -13,10 +16,10 @@ class DriveCard(ctk.CTkFrame):
         self,
         master,
         account: Account,
-        on_open_drive: Optional[Callable[[Account], None]] = None,
-        on_toggle_mount: Optional[Callable[[Account], None]] = None,
-        on_settings: Optional[Callable[[Account], None]] = None,
-        **kwargs
+        on_open_drive: Callable[[Account], None] | None = None,
+        on_toggle_mount: Callable[[Account], None] | None = None,
+        on_settings: Callable[[Account], None] | None = None,
+        **kwargs,
     ):
         super().__init__(
             master,
@@ -24,7 +27,7 @@ class DriveCard(ctk.CTkFrame):
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
             border_color=Colors.CARD_BORDER,
-            **kwargs
+            **kwargs,
         )
         self.account = account
         self.on_open_drive = on_open_drive
@@ -42,12 +45,7 @@ class DriveCard(ctk.CTkFrame):
         pad_y = 16
 
         # --- Top Row: Drive Icon, Name/Email, Status Badge, Drive Letter Badge ---
-        icon_label = ctk.CTkLabel(
-            self,
-            text="",
-            image=get_gdrive_icon(36),
-            width=40
-        )
+        icon_label = ctk.CTkLabel(self, text="", image=get_gdrive_icon(36), width=40)
         icon_label.grid(row=0, column=0, rowspan=2, padx=(pad_x, 12), pady=(pad_y, 0), sticky="nw")
 
         # Name & Email stack
@@ -58,10 +56,7 @@ class DriveCard(ctk.CTkFrame):
         name_row.pack(anchor="w", fill="x")
 
         display_name_lbl = ctk.CTkLabel(
-            name_row,
-            text=self.account.display_name,
-            font=Fonts.CARD_TITLE,
-            text_color=Colors.TEXT_PRIMARY
+            name_row, text=self.account.display_name, font=Fonts.CARD_TITLE, text_color=Colors.TEXT_PRIMARY
         )
         display_name_lbl.pack(side="left")
 
@@ -74,15 +69,12 @@ class DriveCard(ctk.CTkFrame):
                 fg_color=Colors.BG_SIDEBAR_ACTIVE,
                 corner_radius=4,
                 padx=6,
-                pady=1
+                pady=1,
             )
             sample_tag.pack(side="left", padx=(8, 0))
 
         email_lbl = ctk.CTkLabel(
-            title_frame,
-            text=self.account.email,
-            font=Fonts.CAPTION,
-            text_color=Colors.TEXT_SECONDARY
+            title_frame, text=self.account.email, font=Fonts.CAPTION, text_color=Colors.TEXT_SECONDARY
         )
         email_lbl.pack(anchor="w", pady=(1, 0))
 
@@ -99,13 +91,15 @@ class DriveCard(ctk.CTkFrame):
             text_color=Colors.TEXT_PRIMARY,
             fg_color=letter_color,
             corner_radius=6,
-            height=24
+            height=24,
         )
         letter_pill.pack(side="right", padx=(6, 0))
 
         # Status Pill
-        status_color = Colors.STATUS_MOUNTED if self.account.is_mounted else (
-            Colors.STATUS_CONNECTED if self.account.status == "Connected" else Colors.STATUS_MUTED
+        status_color = (
+            Colors.STATUS_MOUNTED
+            if self.account.is_mounted
+            else (Colors.STATUS_CONNECTED if self.account.status == "Connected" else Colors.STATUS_MUTED)
         )
         status_text = "MOUNTED" if self.account.is_mounted else self.account.status.upper()
         status_pill = ctk.CTkLabel(
@@ -115,7 +109,7 @@ class DriveCard(ctk.CTkFrame):
             text_color=status_color,
             fg_color=Colors.INPUT_BG,
             corner_radius=6,
-            height=24
+            height=24,
         )
         status_pill.pack(side="right")
 
@@ -130,16 +124,13 @@ class DriveCard(ctk.CTkFrame):
             mode_row,
             text=f"Mode: {self.account.operating_mode}",
             font=Fonts.CAPTION,
-            text_color=Colors.TEXT_MUTED
+            text_color=Colors.TEXT_MUTED,
         )
         mode_lbl.pack(side="left")
 
         storage_text = f"{self.account.formatted_used} / {self.account.formatted_total} ({self.account.storage_percentage:.0f}%)"
         storage_lbl = ctk.CTkLabel(
-            mode_row,
-            text=storage_text,
-            font=Fonts.CAPTION,
-            text_color=Colors.TEXT_SECONDARY
+            mode_row, text=storage_text, font=Fonts.CAPTION, text_color=Colors.TEXT_SECONDARY
         )
         storage_lbl.pack(side="right")
 
@@ -150,17 +141,14 @@ class DriveCard(ctk.CTkFrame):
             height=6,
             corner_radius=3,
             fg_color=Colors.PROGRESS_BG,
-            progress_color=Colors.ACCENT_PRIMARY
+            progress_color=Colors.ACCENT_PRIMARY,
         )
         progress_bar.set(pct)
         progress_bar.pack(fill="x")
 
         # --- Bottom Row: Action Buttons ---
         actions_frame = ctk.CTkFrame(
-            self,
-            fg_color=Colors.CARD_INNER,
-            corner_radius=Dimensions.CARD_CORNER_RADIUS,
-            height=46
+            self, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS, height=46
         )
         actions_frame.grid(row=2, column=0, columnspan=3, padx=10, pady=(0, 10), sticky="ew")
 
@@ -179,7 +167,7 @@ class DriveCard(ctk.CTkFrame):
             hover_color=Colors.ACCENT_HOVER,
             corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
             height=32,
-            command=self._handle_toggle_mount
+            command=self._handle_toggle_mount,
         )
         self.mount_btn.pack(side="left", padx=(10, 8), pady=7)
 
@@ -196,7 +184,7 @@ class DriveCard(ctk.CTkFrame):
             border_color=Colors.CARD_BORDER,
             corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
             height=32,
-            command=self._handle_open_drive
+            command=self._handle_open_drive,
         )
         open_btn.pack(side="left", padx=(0, 8), pady=7)
 
@@ -212,7 +200,7 @@ class DriveCard(ctk.CTkFrame):
             hover_color=Colors.CARD_HOVER,
             corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
             height=32,
-            command=self._handle_settings
+            command=self._handle_settings,
         )
         settings_btn.pack(side="right", padx=(0, 10), pady=7)
 

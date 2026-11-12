@@ -1,15 +1,18 @@
 """Version extraction and Git tag validation utility for CI/CD."""
 
+import argparse
 import re
 import sys
-import argparse
 from pathlib import Path
+
 
 def get_app_version() -> str:
     base_dir = Path(__file__).resolve().parent.parent
     sys.path.insert(0, str(base_dir))
     from app.__version__ import __version__
+
     return __version__
+
 
 def main():
     parser = argparse.ArgumentParser(description="GDrive Manager Version Utility")
@@ -28,7 +31,9 @@ def main():
     if args.verify_tag:
         expected_tag = f"v{version}"
         if args.verify_tag != expected_tag:
-            print(f"[-] ERROR: Tag mismatch! Git tag is '{args.verify_tag}' but app version is '{version}' (expected '{expected_tag}')")
+            print(
+                f"[-] ERROR: Tag mismatch! Git tag is '{args.verify_tag}' but app version is '{version}' (expected '{expected_tag}')"
+            )
             sys.exit(1)
         print(f"[✓] Version verification passed: Git tag '{args.verify_tag}' matches app version '{version}'")
         return
@@ -37,6 +42,7 @@ def main():
         print(version, end="")
     else:
         print(f"GDrive Manager Version: {version}")
+
 
 if __name__ == "__main__":
     main()

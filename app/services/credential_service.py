@@ -1,19 +1,22 @@
 """Secure credential storage using Windows Credential Manager via keyring."""
 
 import json
-from typing import Optional, Dict, Any
+from typing import Any
+
 import keyring
+
 from app.utils.logger import get_logger
 
 logger = get_logger("CredentialService")
 
 SERVICE_NAME = "GDriveManager"
 
+
 class CredentialService:
     """Manages sensitive OAuth tokens and secrets in Windows Credential Manager."""
 
     @staticmethod
-    def store_token(account_id: str, token_data: Dict[str, Any]) -> bool:
+    def store_token(account_id: str, token_data: dict[str, Any]) -> bool:
         """Store OAuth token dict as JSON in Windows Credential Manager."""
         try:
             payload = json.dumps(token_data)
@@ -25,7 +28,7 @@ class CredentialService:
             return False
 
     @staticmethod
-    def get_token(account_id: str) -> Optional[Dict[str, Any]]:
+    def get_token(account_id: str) -> dict[str, Any] | None:
         """Retrieve and parse OAuth token dict from Windows Credential Manager."""
         try:
             payload = keyring.get_password(SERVICE_NAME, account_id)

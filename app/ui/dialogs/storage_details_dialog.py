@@ -1,13 +1,15 @@
 """Storage Details modal dialog displaying cloud, offline, and VFS cache breakdown."""
 
-from typing import Callable, Optional
+from collections.abc import Callable
 from tkinter import messagebox
+
 import customtkinter as ctk
 
+from app.config.theme import Colors, Dimensions, Fonts
+from app.core.storage_manager import StorageBreakdown, StorageManager
 from app.models.account import Account
-from app.core.storage_manager import StorageManager, StorageBreakdown
-from app.config.theme import Colors, Fonts, Dimensions
-from app.ui.assets import get_symbol_icon, get_drive_hardware_icon
+from app.ui.assets import get_drive_hardware_icon
+
 
 class StorageDetailsDialog(ctk.CTkToplevel):
     """Modal displaying isolated storage breakdown (Cloud Quota, Offline Files, VFS Cache)."""
@@ -17,8 +19,8 @@ class StorageDetailsDialog(ctk.CTkToplevel):
         master,
         account: Account,
         storage_manager: StorageManager,
-        on_cache_purged: Optional[Callable[[], None]] = None,
-        **kwargs
+        on_cache_purged: Callable[[], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, **kwargs)
         self.account = account
@@ -51,7 +53,7 @@ class StorageDetailsDialog(ctk.CTkToplevel):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         container.pack(fill="both", expand=True, padx=16, pady=16)
 
@@ -68,14 +70,23 @@ class StorageDetailsDialog(ctk.CTkToplevel):
         t_box = ctk.CTkFrame(head_row, fg_color="transparent")
         t_box.pack(side="left")
 
-        t_lbl = ctk.CTkLabel(t_box, text=f"{self.account.display_name}", font=Fonts.CARD_TITLE, text_color=Colors.TEXT_PRIMARY)
+        t_lbl = ctk.CTkLabel(
+            t_box, text=f"{self.account.display_name}", font=Fonts.CARD_TITLE, text_color=Colors.TEXT_PRIMARY
+        )
         t_lbl.pack(anchor="w")
 
-        m_lbl = ctk.CTkLabel(t_box, text=f"Operating Mode: {self.account.operating_mode}", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED)
+        m_lbl = ctk.CTkLabel(
+            t_box,
+            text=f"Operating Mode: {self.account.operating_mode}",
+            font=Fonts.CAPTION,
+            text_color=Colors.TEXT_MUTED,
+        )
         m_lbl.pack(anchor="w")
 
         # 1. Cloud Storage Section Card
-        self.cloud_card = ctk.CTkFrame(self.inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS)
+        self.cloud_card = ctk.CTkFrame(
+            self.inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS
+        )
         self.cloud_card.pack(fill="x", pady=(0, 14))
 
         cc_inner = ctk.CTkFrame(self.cloud_card, fg_color="transparent")
@@ -84,10 +95,14 @@ class StorageDetailsDialog(ctk.CTkToplevel):
         c_top = ctk.CTkFrame(cc_inner, fg_color="transparent")
         c_top.pack(fill="x", pady=(0, 6))
 
-        c_title = ctk.CTkLabel(c_top, text="☁️ Cloud Storage (Google Drive)", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        c_title = ctk.CTkLabel(
+            c_top, text="☁️ Cloud Storage (Google Drive)", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         c_title.pack(side="left")
 
-        self.cloud_quota_lbl = ctk.CTkLabel(c_top, text="Loading...", font=Fonts.CAPTION, text_color=Colors.TEXT_SECONDARY)
+        self.cloud_quota_lbl = ctk.CTkLabel(
+            c_top, text="Loading...", font=Fonts.CAPTION, text_color=Colors.TEXT_SECONDARY
+        )
         self.cloud_quota_lbl.pack(side="right")
 
         self.cloud_prog = ctk.CTkProgressBar(
@@ -95,22 +110,31 @@ class StorageDetailsDialog(ctk.CTkToplevel):
             height=8,
             corner_radius=4,
             fg_color=Colors.PROGRESS_BG,
-            progress_color=Colors.ACCENT_PRIMARY
+            progress_color=Colors.ACCENT_PRIMARY,
         )
         self.cloud_prog.set(0)
         self.cloud_prog.pack(fill="x", pady=(4, 6))
 
-        self.cloud_detail_lbl = ctk.CTkLabel(cc_inner, text="Querying Google Drive API...", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED)
+        self.cloud_detail_lbl = ctk.CTkLabel(
+            cc_inner, text="Querying Google Drive API...", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED
+        )
         self.cloud_detail_lbl.pack(anchor="w")
 
         # 2. Local Offline Directory Card
-        self.offline_card = ctk.CTkFrame(self.inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS)
+        self.offline_card = ctk.CTkFrame(
+            self.inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS
+        )
         self.offline_card.pack(fill="x", pady=(0, 14))
 
         oc_inner = ctk.CTkFrame(self.offline_card, fg_color="transparent")
         oc_inner.pack(fill="x", padx=16, pady=14)
 
-        o_title = ctk.CTkLabel(oc_inner, text="📁 Local Offline Storage (Backup / Mirror)", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        o_title = ctk.CTkLabel(
+            oc_inner,
+            text="📁 Local Offline Storage (Backup / Mirror)",
+            font=Fonts.BODY_BOLD,
+            text_color=Colors.TEXT_PRIMARY,
+        )
         o_title.pack(anchor="w", pady=(0, 4))
 
         self.offline_detail_lbl = ctk.CTkLabel(
@@ -118,12 +142,14 @@ class StorageDetailsDialog(ctk.CTkToplevel):
             text=f"Path: {self.account.offline_path or 'Not configured'}\nCalculating disk usage...",
             font=Fonts.CAPTION,
             text_color=Colors.TEXT_SECONDARY,
-            justify="left"
+            justify="left",
         )
         self.offline_detail_lbl.pack(anchor="w")
 
         # 3. Local VFS Streaming Cache Card
-        self.cache_card = ctk.CTkFrame(self.inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS)
+        self.cache_card = ctk.CTkFrame(
+            self.inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS
+        )
         self.cache_card.pack(fill="x", pady=(0, 18))
 
         kc_inner = ctk.CTkFrame(self.cache_card, fg_color="transparent")
@@ -132,7 +158,12 @@ class StorageDetailsDialog(ctk.CTkToplevel):
         k_top = ctk.CTkFrame(kc_inner, fg_color="transparent")
         k_top.pack(fill="x", pady=(0, 4))
 
-        k_title = ctk.CTkLabel(k_top, text="⚡ VFS Streaming Cache (Temporary)", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        k_title = ctk.CTkLabel(
+            k_top,
+            text="⚡ VFS Streaming Cache (Temporary)",
+            font=Fonts.BODY_BOLD,
+            text_color=Colors.TEXT_PRIMARY,
+        )
         k_title.pack(side="left")
 
         purge_btn = ctk.CTkButton(
@@ -143,7 +174,7 @@ class StorageDetailsDialog(ctk.CTkToplevel):
             hover_color="#D97706",
             height=26,
             width=90,
-            command=self._handle_purge_cache
+            command=self._handle_purge_cache,
         )
         purge_btn.pack(side="right")
 
@@ -152,7 +183,7 @@ class StorageDetailsDialog(ctk.CTkToplevel):
             text=f"Quota Limit: {self.account.cache_size} (TTL: {self.account.cache_expiry})\nCalculating cache size...",
             font=Fonts.CAPTION,
             text_color=Colors.TEXT_SECONDARY,
-            justify="left"
+            justify="left",
         )
         self.cache_detail_lbl.pack(anchor="w")
 
@@ -167,12 +198,13 @@ class StorageDetailsDialog(ctk.CTkToplevel):
             border_color=Colors.CARD_BORDER,
             height=36,
             width=100,
-            command=self.destroy
+            command=self.destroy,
         )
         close_btn.pack(side="right")
 
     def _load_data(self):
         """Asynchronously load metrics from storage manager."""
+
         def _on_done(b: StorageBreakdown):
             self.after(0, lambda: self._apply_data(b))
 
@@ -209,7 +241,7 @@ class StorageDetailsDialog(ctk.CTkToplevel):
         res = messagebox.askyesno(
             "Purge VFS Streaming Cache",
             f"Are you sure you want to purge the local VFS streaming cache for '{self.account.display_name}'?\n\n"
-            "This will free up local disk space without deleting any files from Google Drive or your offline folder."
+            "This will free up local disk space without deleting any files from Google Drive or your offline folder.",
         )
         if res:
             ok = self.storage_manager.purge_vfs_cache(self.account.id)
@@ -219,4 +251,7 @@ class StorageDetailsDialog(ctk.CTkToplevel):
                 if self.on_cache_purged:
                     self.on_cache_purged()
             else:
-                messagebox.showerror("Error", "Could not purge VFS cache. The drive might currently be actively streaming files.")
+                messagebox.showerror(
+                    "Error",
+                    "Could not purge VFS cache. The drive might currently be actively streaming files.",
+                )

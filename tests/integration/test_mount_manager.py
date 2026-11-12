@@ -1,23 +1,26 @@
 """Unit tests for MountManager subprocess execution and lifecycle."""
 
+import subprocess
 import sys
 from pathlib import Path
-import subprocess
+
 import pytest
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
+from app.core.mount_manager import MountManager
 from app.models.account import Account
 from app.services.rclone_service import RcloneService
-from app.core.mount_manager import MountManager
+
 
 @pytest.fixture
 def rclone_svc():
     svc = RcloneService()
     svc.rclone_exe = "dummy_rclone.exe"
     return svc
+
 
 @pytest.fixture
 def mount_mgr(rclone_svc):
@@ -26,6 +29,7 @@ def mount_mgr(rclone_svc):
     yield mgr
     mgr._monitoring = False
     mgr.unmount_all()
+
 
 def test_build_mount_command(mount_mgr, tmp_path):
     """Test mount command argument list construction."""
@@ -37,7 +41,7 @@ def test_build_mount_command(mount_mgr, tmp_path):
         drive_letter="G:",
         cache_size="25G",
         cache_expiry="48h",
-        read_only=True
+        read_only=True,
     )
     cache_dir = tmp_path / "cache"
     cmd = mount_mgr.build_mount_command(acc, cache_dir)
@@ -56,6 +60,7 @@ def test_build_mount_command(mount_mgr, tmp_path):
     assert "--volname" in cmd
     assert "Unit Drive" in cmd
 
+
 def test_mount_collision_prevention(mount_mgr, mocker):
     """Test that occupied drive letters are rejected."""
     mocker.patch("app.core.mount_manager.is_winfsp_installed", return_value=True)
@@ -67,12 +72,13 @@ def test_mount_collision_prevention(mount_mgr, mocker):
         email="c@gmail.com",
         display_name="Colliding Drive",
         remote_name="gdrive_coll",
-        drive_letter="G:"
+        drive_letter="G:",
     )
 
     ok, msg = mount_mgr.mount_drive(acc)
     assert ok is False
     assert "occupied" in msg.lower()
+
 
 def test_mount_winfsp_missing(mount_mgr, mocker):
     """Test that missing WinFsp driver is clearly reported."""
@@ -84,12 +90,13 @@ def test_mount_winfsp_missing(mount_mgr, mocker):
         email="fsp@gmail.com",
         display_name="No WinFsp",
         remote_name="gdrive_nofsp",
-        drive_letter="Z:"
+        drive_letter="Z:",
     )
 
     ok, msg = mount_mgr.mount_drive(acc)
     assert ok is False
     assert "WinFsp" in msg
+
 
 def test_successful_mount_and_unmount(mount_mgr, mocker):
     """Test successful mount process tracking and subsequent unmount."""
@@ -108,7 +115,7 @@ def test_successful_mount_and_unmount(mount_mgr, mocker):
         email="s@gmail.com",
         display_name="Success Drive",
         remote_name="gdrive_success",
-        drive_letter="K:"
+        drive_letter="K:",
     )
 
     # 1. Mount

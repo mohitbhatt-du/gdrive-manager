@@ -1,10 +1,13 @@
 """Modern navigation sidebar component with status footer."""
 
-from typing import Callable, Dict
+from collections.abc import Callable
+
 import customtkinter as ctk
-from app.config.theme import Colors, Fonts, Dimensions
+
 from app.__version__ import __version__
-from app.ui.assets import get_gdrive_icon, get_symbol_icon, get_drive_hardware_icon
+from app.config.theme import Colors, Dimensions, Fonts
+from app.ui.assets import get_drive_hardware_icon, get_gdrive_icon, get_symbol_icon
+
 
 class Sidebar(ctk.CTkFrame):
     """Left navigation panel with brand header, nav buttons, and system status footer."""
@@ -15,20 +18,16 @@ class Sidebar(ctk.CTkFrame):
         on_navigate: Callable[[str], None],
         on_add_drive_click: Callable[[], None],
         version: str = f"v{__version__}",
-        **kwargs
+        **kwargs,
     ):
         super().__init__(
-            master,
-            width=Dimensions.SIDEBAR_WIDTH,
-            fg_color=Colors.BG_SIDEBAR,
-            corner_radius=0,
-            **kwargs
+            master, width=Dimensions.SIDEBAR_WIDTH, fg_color=Colors.BG_SIDEBAR, corner_radius=0, **kwargs
         )
         self.on_navigate = on_navigate
         self.on_add_drive_click = on_add_drive_click
         self.version = version
         self.current_page = "drives"
-        self.nav_buttons: Dict[str, ctk.CTkButton] = {}
+        self.nav_buttons: dict[str, ctk.CTkButton] = {}
 
         self.grid_rowconfigure(2, weight=1)  # Expand middle nav space
         self._build_ui()
@@ -38,30 +37,19 @@ class Sidebar(ctk.CTkFrame):
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.grid(row=0, column=0, padx=20, pady=(24, 20), sticky="ew")
 
-        logo_label = ctk.CTkLabel(
-            header_frame,
-            text="",
-            image=get_gdrive_icon(32),
-            width=36
-        )
+        logo_label = ctk.CTkLabel(header_frame, text="", image=get_gdrive_icon(32), width=36)
         logo_label.pack(side="left", padx=(0, 10))
 
         title_box = ctk.CTkFrame(header_frame, fg_color="transparent")
         title_box.pack(side="left")
 
         app_title = ctk.CTkLabel(
-            title_box,
-            text="GDrive Manager",
-            font=Fonts.SECTION_HEADER,
-            text_color=Colors.TEXT_PRIMARY
+            title_box, text="GDrive Manager", font=Fonts.SECTION_HEADER, text_color=Colors.TEXT_PRIMARY
         )
         app_title.pack(anchor="w")
 
         app_subtitle = ctk.CTkLabel(
-            title_box,
-            text="Desktop Cloud Sync",
-            font=Fonts.CAPTION,
-            text_color=Colors.TEXT_MUTED
+            title_box, text="Desktop Cloud Sync", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED
         )
         app_subtitle.pack(anchor="w")
 
@@ -76,7 +64,7 @@ class Sidebar(ctk.CTkFrame):
             hover_color=Colors.ACCENT_HOVER,
             corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
             height=38,
-            command=self.on_add_drive_click
+            command=self.on_add_drive_click,
         )
         add_btn.grid(row=1, column=0, padx=16, pady=(0, 16), sticky="ew")
 
@@ -107,7 +95,7 @@ class Sidebar(ctk.CTkFrame):
                 hover_color=Colors.BG_SIDEBAR_HOVER,
                 corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
                 height=40,
-                command=lambda p=page_id: self._handle_nav(p)
+                command=lambda p=page_id: self._handle_nav(p),
             )
             btn.pack(fill="x", pady=2)
             self.nav_buttons[page_id] = btn
@@ -120,7 +108,7 @@ class Sidebar(ctk.CTkFrame):
             fg_color=Colors.CARD_INNER,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         footer_frame.grid(row=3, column=0, padx=12, pady=16, sticky="ew")
 
@@ -128,28 +116,17 @@ class Sidebar(ctk.CTkFrame):
         status_row = ctk.CTkFrame(footer_frame, fg_color="transparent")
         status_row.pack(fill="x", padx=12, pady=(10, 4))
 
-        status_dot = ctk.CTkLabel(
-            status_row,
-            text="●",
-            font=Fonts.BADGE,
-            text_color=Colors.STATUS_MOUNTED
-        )
+        status_dot = ctk.CTkLabel(status_row, text="●", font=Fonts.BADGE, text_color=Colors.STATUS_MOUNTED)
         status_dot.pack(side="left", padx=(0, 6))
 
         self.status_label = ctk.CTkLabel(
-            status_row,
-            text="Ready & Connected",
-            font=Fonts.CAPTION,
-            text_color=Colors.TEXT_PRIMARY
+            status_row, text="Ready & Connected", font=Fonts.CAPTION, text_color=Colors.TEXT_PRIMARY
         )
         self.status_label.pack(side="left")
 
         # Active account summary
         self.account_summary_lbl = ctk.CTkLabel(
-            footer_frame,
-            text="4 Drives Configured",
-            font=Fonts.CAPTION,
-            text_color=Colors.TEXT_MUTED
+            footer_frame, text="4 Drives Configured", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED
         )
         self.account_summary_lbl.pack(anchor="w", padx=12, pady=(0, 4))
 
@@ -158,7 +135,7 @@ class Sidebar(ctk.CTkFrame):
             footer_frame,
             text=f"GDrive Manager {self.version}",
             font=Fonts.CAPTION,
-            text_color=Colors.TEXT_MUTED
+            text_color=Colors.TEXT_MUTED,
         )
         version_lbl.pack(anchor="w", padx=12, pady=(0, 10))
 
@@ -174,14 +151,10 @@ class Sidebar(ctk.CTkFrame):
                     fg_color=Colors.BG_SIDEBAR_ACTIVE,
                     text_color=Colors.TEXT_PRIMARY,
                     border_width=1,
-                    border_color=Colors.ACCENT_PRIMARY
+                    border_color=Colors.ACCENT_PRIMARY,
                 )
             else:
-                btn.configure(
-                    fg_color="transparent",
-                    text_color=Colors.TEXT_SECONDARY,
-                    border_width=0
-                )
+                btn.configure(fg_color="transparent", text_color=Colors.TEXT_SECONDARY, border_width=0)
 
     def update_status(self, text: str, color: str = Colors.STATUS_MOUNTED):
         self.status_label.configure(text=text, text_color=Colors.TEXT_PRIMARY)

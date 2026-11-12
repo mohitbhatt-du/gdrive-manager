@@ -2,23 +2,27 @@
 
 import sys
 from pathlib import Path
+
 import pytest
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-from app.models.account import Account
 from app.config.account_repository import AccountRepository
+from app.models.account import Account
+
 
 @pytest.fixture
 def repo(tmp_path):
     storage_file = tmp_path / "accounts_test.json"
     return AccountRepository(storage_path=storage_file)
 
+
 def test_empty_repo(repo):
     """Empty repo should return empty list."""
     assert repo.load_all() == []
+
 
 def test_add_and_load_account(repo):
     """Test adding real accounts and reading back."""
@@ -31,7 +35,7 @@ def test_add_and_load_account(repo):
         streaming_enabled=True,
         offline_enabled=True,
         offline_path="C:/Offline/Real",
-        is_sample=False
+        is_sample=False,
     )
     assert repo.add_account(acc) is True
 
@@ -41,6 +45,7 @@ def test_add_and_load_account(repo):
     assert loaded[0].display_name == "Real Drive"
     assert loaded[0].offline_path == "C:/Offline/Real"
     assert loaded[0].is_sample is False
+
 
 def test_duplicate_prevention(repo):
     """Repo should reject duplicate account IDs or remotes."""
@@ -52,9 +57,16 @@ def test_duplicate_prevention(repo):
     assert repo.add_account(acc2) is False
     assert repo.add_account(acc3) is False
 
+
 def test_update_and_delete_account(repo):
     """Test updating existing account fields and deleting."""
-    acc = Account(id="acc_target", email="t@gmail.com", display_name="Target", remote_name="rem_target", drive_letter="H:")
+    acc = Account(
+        id="acc_target",
+        email="t@gmail.com",
+        display_name="Target",
+        remote_name="rem_target",
+        drive_letter="H:",
+    )
     repo.add_account(acc)
 
     # Update

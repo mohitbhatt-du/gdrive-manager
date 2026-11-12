@@ -2,14 +2,15 @@
 
 import sys
 from pathlib import Path
+
 import pytest
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
-import customtkinter as ctk
 from app.ui.main_window import MainWindow
+
 
 @pytest.fixture(scope="session")
 def main_app():
@@ -21,6 +22,7 @@ def main_app():
         app.destroy()
     except Exception:
         pass
+
 
 @pytest.fixture(scope="session")
 def tk_root(main_app):

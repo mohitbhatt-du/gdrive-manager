@@ -2,17 +2,18 @@
 
 import json
 from pathlib import Path
-from typing import List, Optional
+
 from app.models.account import Account
-from app.utils.paths import DATA_DIR, get_app_data_dir
 from app.utils.logger import get_logger
+from app.utils.paths import get_app_data_dir
 
 logger = get_logger("AccountRepository")
+
 
 class AccountRepository:
     """Manages persistence of non-sensitive Google Drive account metadata."""
 
-    def __init__(self, storage_path: Optional[Path] = None):
+    def __init__(self, storage_path: Path | None = None):
         if storage_path:
             self.file_path = storage_path
         else:
@@ -21,13 +22,13 @@ class AccountRepository:
         # Ensure parent directory exists
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    def load_all(self) -> List[Account]:
+    def load_all(self) -> list[Account]:
         """Load and validate all configured accounts from disk."""
         if not self.file_path.exists():
             return []
 
         try:
-            with open(self.file_path, "r", encoding="utf-8") as f:
+            with open(self.file_path, encoding="utf-8") as f:
                 data = json.load(f)
 
             if not isinstance(data, dict) or "accounts" not in data:
@@ -49,17 +50,14 @@ class AccountRepository:
             logger.error(f"Error loading accounts file {self.file_path}: {e}")
             return []
 
-    def save_all(self, accounts: List[Account]) -> bool:
+    def save_all(self, accounts: list[Account]) -> bool:
         """Atomically persist accounts list to JSON file."""
         temp_file = self.file_path.with_suffix(".tmp")
         try:
             # Filter out sample preview accounts from persistent storage
             real_accounts = [a for a in accounts if not a.is_sample]
 
-            data = {
-                "version": 1,
-                "accounts": [a.to_dict() for a in real_accounts]
-            }
+            data = {"version": 1, "accounts": [a.to_dict() for a in real_accounts]}
 
             with open(temp_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
@@ -82,7 +80,9 @@ class AccountRepository:
         accounts = self.load_all()
         for existing in accounts:
             if existing.id == account.id or existing.remote_name == account.remote_name:
-                logger.warning(f"Account with ID '{account.id}' or remote '{account.remote_name}' already exists.")
+                logger.warning(
+                    f"Account with ID '{account.id}' or remote '{account.remote_name}' already exists."
+                )
                 return False
         accounts.append(account)
         return self.save_all(accounts)

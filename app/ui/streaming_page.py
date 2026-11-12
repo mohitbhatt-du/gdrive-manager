@@ -1,11 +1,13 @@
 """Streaming Mode management view for mounting Google Drive as Windows drives."""
 
-from typing import List, Callable, Optional
+from collections.abc import Callable
+
 import customtkinter as ctk
+
+from app.config.theme import Colors, Dimensions, Fonts
 from app.models.account import Account
-from app.config.theme import Colors, Fonts, Dimensions
-from app.ui.assets import get_symbol_icon, get_drive_hardware_icon
-from app.utils.platform_checks import is_winfsp_installed, is_rclone_installed
+from app.utils.platform_checks import is_rclone_installed, is_winfsp_installed
+
 
 class StreamingPage(ctk.CTkFrame):
     """View dedicated to managing Windows drive mounts, VFS caching, and WinFsp status."""
@@ -13,10 +15,10 @@ class StreamingPage(ctk.CTkFrame):
     def __init__(
         self,
         master,
-        accounts: List[Account],
-        on_toggle_mount: Optional[Callable[[Account], None]] = None,
-        on_open_drive: Optional[Callable[[Account], None]] = None,
-        **kwargs
+        accounts: list[Account],
+        on_toggle_mount: Callable[[Account], None] | None = None,
+        on_open_drive: Callable[[Account], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.accounts = accounts
@@ -31,10 +33,7 @@ class StreamingPage(ctk.CTkFrame):
         header.pack(fill="x", padx=28, pady=(24, 16))
 
         title = ctk.CTkLabel(
-            header,
-            text="Streaming Drives (WinFsp)",
-            font=Fonts.HERO,
-            text_color=Colors.TEXT_PRIMARY
+            header, text="Streaming Drives (WinFsp)", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY
         )
         title.pack(anchor="w")
 
@@ -42,7 +41,7 @@ class StreamingPage(ctk.CTkFrame):
             header,
             text="Mount your Google Drives directly as Windows drive letters with smart on-demand VFS caching",
             font=Fonts.SUBTITLE,
-            text_color=Colors.TEXT_SECONDARY
+            text_color=Colors.TEXT_SECONDARY,
         )
         subtitle.pack(anchor="w", pady=(2, 0))
 
@@ -55,12 +54,14 @@ class StreamingPage(ctk.CTkFrame):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         table_card.pack(fill="both", expand=True, padx=28, pady=(0, 20))
 
         # Table Header
-        tbl_header = ctk.CTkFrame(table_card, fg_color=Colors.CARD_INNER, height=40, corner_radius=Dimensions.CARD_CORNER_RADIUS)
+        tbl_header = ctk.CTkFrame(
+            table_card, fg_color=Colors.CARD_INNER, height=40, corner_radius=Dimensions.CARD_CORNER_RADIUS
+        )
         tbl_header.pack(fill="x", padx=10, pady=(10, 6))
 
         cols = [
@@ -71,13 +72,8 @@ class StreamingPage(ctk.CTkFrame):
             ("Actions", 0.20),
         ]
 
-        for name, weight in cols:
-            lbl = ctk.CTkLabel(
-                tbl_header,
-                text=name.upper(),
-                font=Fonts.BADGE,
-                text_color=Colors.TEXT_MUTED
-            )
+        for name, _weight in cols:
+            lbl = ctk.CTkLabel(tbl_header, text=name.upper(), font=Fonts.BADGE, text_color=Colors.TEXT_MUTED)
             lbl.pack(side="left", padx=12, expand=True, fill="x")
 
         # Scrollable rows
@@ -95,7 +91,7 @@ class StreamingPage(ctk.CTkFrame):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         banner.pack(fill="x", padx=28, pady=(0, 16))
 
@@ -105,7 +101,7 @@ class StreamingPage(ctk.CTkFrame):
         # WinFsp status
         fsp_color = Colors.STATUS_MOUNTED if winfsp_ok else Colors.STATUS_WARNING
         fsp_text = "Installed & Active" if winfsp_ok else "Not Detected (Required for Windows drive letters)"
-        
+
         fsp_row = ctk.CTkFrame(b_box, fg_color="transparent")
         fsp_row.pack(side="left", padx=(0, 28))
 
@@ -113,17 +109,14 @@ class StreamingPage(ctk.CTkFrame):
         fsp_icon.pack(side="left", padx=(0, 8))
 
         fsp_lbl = ctk.CTkLabel(
-            fsp_row,
-            text=f"WinFsp Driver: {fsp_text}",
-            font=Fonts.BODY,
-            text_color=Colors.TEXT_PRIMARY
+            fsp_row, text=f"WinFsp Driver: {fsp_text}", font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY
         )
         fsp_lbl.pack(side="left")
 
         # Rclone status
         rcl_color = Colors.STATUS_MOUNTED if rclone_ok else Colors.STATUS_WARNING
         rcl_text = "Available" if rclone_ok else "Not in PATH (Will be downloaded or configured in Phase 2)"
-        
+
         rcl_row = ctk.CTkFrame(b_box, fg_color="transparent")
         rcl_row.pack(side="left")
 
@@ -131,10 +124,7 @@ class StreamingPage(ctk.CTkFrame):
         rcl_icon.pack(side="left", padx=(0, 8))
 
         rcl_lbl = ctk.CTkLabel(
-            rcl_row,
-            text=f"rclone Engine: {rcl_text}",
-            font=Fonts.BODY,
-            text_color=Colors.TEXT_PRIMARY
+            rcl_row, text=f"rclone Engine: {rcl_text}", font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY
         )
         rcl_lbl.pack(side="left")
 
@@ -148,7 +138,7 @@ class StreamingPage(ctk.CTkFrame):
                 self.row_scroll,
                 text="No drives currently configured for streaming mode.",
                 font=Fonts.SUBTITLE,
-                text_color=Colors.TEXT_MUTED
+                text_color=Colors.TEXT_MUTED,
             )
             lbl.pack(pady=40)
             return
@@ -158,7 +148,7 @@ class StreamingPage(ctk.CTkFrame):
                 self.row_scroll,
                 fg_color=Colors.CARD_INNER,
                 corner_radius=Dimensions.CARD_CORNER_RADIUS,
-                height=50
+                height=50,
             )
             row.pack(fill="x", pady=4)
 
@@ -170,7 +160,7 @@ class StreamingPage(ctk.CTkFrame):
                 text_color=Colors.TEXT_PRIMARY,
                 fg_color=Colors.ACCENT_PRIMARY if acc.is_mounted else Colors.BG_SIDEBAR,
                 corner_radius=6,
-                height=26
+                height=26,
             )
             letter_lbl.pack(side="left", padx=(14, 16))
 
@@ -178,10 +168,17 @@ class StreamingPage(ctk.CTkFrame):
             name_box = ctk.CTkFrame(row, fg_color="transparent")
             name_box.pack(side="left", fill="x", expand=True)
 
-            dname = ctk.CTkLabel(name_box, text=acc.display_name, font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+            dname = ctk.CTkLabel(
+                name_box, text=acc.display_name, font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+            )
             dname.pack(anchor="w")
 
-            rname = ctk.CTkLabel(name_box, text=f"Remote: {acc.remote_name} ({acc.email})", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED)
+            rname = ctk.CTkLabel(
+                name_box,
+                text=f"Remote: {acc.remote_name} ({acc.email})",
+                font=Fonts.CAPTION,
+                text_color=Colors.TEXT_MUTED,
+            )
             rname.pack(anchor="w")
 
             # Cache Limit
@@ -189,7 +186,7 @@ class StreamingPage(ctk.CTkFrame):
                 row,
                 text=f"{acc.cache_size} (TTL: {acc.cache_expiry})",
                 font=Fonts.CAPTION,
-                text_color=Colors.TEXT_SECONDARY
+                text_color=Colors.TEXT_SECONDARY,
             )
             cache_lbl.pack(side="left", padx=16)
 
@@ -203,7 +200,7 @@ class StreamingPage(ctk.CTkFrame):
                 text_color=st_color,
                 fg_color=Colors.INPUT_BG,
                 corner_radius=6,
-                height=24
+                height=24,
             )
             st_pill.pack(side="left", padx=16)
 
@@ -221,7 +218,7 @@ class StreamingPage(ctk.CTkFrame):
                 corner_radius=6,
                 width=80,
                 height=30,
-                command=lambda a=acc: self._handle_toggle(a)
+                command=lambda a=acc: self._handle_toggle(a),
             )
             m_btn.pack(side="left", padx=(0, 6))
 
@@ -237,7 +234,7 @@ class StreamingPage(ctk.CTkFrame):
                     corner_radius=6,
                     width=60,
                     height=30,
-                    command=lambda a=acc: self._handle_open(a)
+                    command=lambda a=acc: self._handle_open(a),
                 )
                 open_btn.pack(side="left")
 
@@ -249,6 +246,6 @@ class StreamingPage(ctk.CTkFrame):
         if self.on_open_drive:
             self.on_open_drive(acc)
 
-    def update_accounts(self, accounts: List[Account]):
+    def update_accounts(self, accounts: list[Account]):
         self.accounts = accounts
         self.render_rows()

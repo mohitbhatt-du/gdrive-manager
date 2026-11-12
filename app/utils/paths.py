@@ -1,8 +1,9 @@
 """Application paths and directory management."""
 
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
+
 
 def get_base_dir() -> Path:
     """Return the base directory of the application."""
@@ -12,10 +13,13 @@ def get_base_dir() -> Path:
         return Path(sys.executable).parent
     return Path(__file__).resolve().parent.parent.parent
 
+
 BASE_DIR = get_base_dir()
 APP_DIR = BASE_DIR / "app"
 ASSETS_DIR = BASE_DIR / "assets"
 ICONS_DIR = ASSETS_DIR / "icons"
+
+
 def get_app_data_dir() -> Path:
     """Return the Windows LocalAppData directory for user-specific data."""
     local_app_data = os.environ.get("LOCALAPPDATA")
@@ -26,8 +30,10 @@ def get_app_data_dir() -> Path:
     path.mkdir(parents=True, exist_ok=True)
     return path
 
+
 DATA_DIR = get_app_data_dir()
 LOGS_DIR = get_app_data_dir() / "logs"
+
 
 def ensure_directories():
     """Ensure runtime directories exist."""

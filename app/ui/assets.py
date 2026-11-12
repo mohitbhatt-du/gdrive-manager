@@ -1,22 +1,24 @@
 """Icon and image asset generation using Pillow for crisp, modern GUI icons."""
 
-from PIL import Image, ImageDraw
 import customtkinter as ctk
-from typing import Dict, Tuple
+from PIL import Image, ImageDraw
 
-_pil_cache: Dict[str, Image.Image] = {}
+_pil_cache: dict[str, Image.Image] = {}
+
 
 def clear_icon_cache():
     """Clear cached PIL images."""
     _pil_cache.clear()
 
-def _create_smooth_canvas(size: int = 48) -> Tuple[Image.Image, ImageDraw.ImageDraw, int]:
+
+def _create_smooth_canvas(size: int = 48) -> tuple[Image.Image, ImageDraw.ImageDraw, int]:
     """Create supersampled canvas for sharp antialiased drawing."""
     scale = 4
     canvas_size = size * scale
     img = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
     return img, draw, scale
+
 
 def get_gdrive_icon(size: int = 36) -> ctk.CTkImage:
     """Generate the original GDrive Manager geometric cloud nexus icon."""
@@ -36,7 +38,7 @@ def get_gdrive_icon(size: int = 36) -> ctk.CTkImage:
         radius=radius,
         fill=(15, 23, 42, 255),
         outline=(124, 58, 237, 220),
-        width=max(2, int(w * 0.03))
+        width=max(2, int(w * 0.03)),
     )
 
     # Isometric Nexus Coordinates
@@ -49,11 +51,20 @@ def get_gdrive_icon(size: int = 36) -> ctk.CTkImage:
     right_x = cx + int(w * 0.24)
 
     # 1. Top Facet (Cloud Streaming - Cyan)
-    draw.polygon([(cx, top_y), (right_x, cy - int(w * 0.14)), (cx, mid_y), (left_x, cy - int(w * 0.14))], fill=(6, 182, 212, 255))
+    draw.polygon(
+        [(cx, top_y), (right_x, cy - int(w * 0.14)), (cx, mid_y), (left_x, cy - int(w * 0.14))],
+        fill=(6, 182, 212, 255),
+    )
     # 2. Left Facet (Virtual Drive - Deep Violet)
-    draw.polygon([(left_x, cy - int(w * 0.14)), (cx, mid_y), (cx, bot_y), (left_x, cy + int(w * 0.14))], fill=(109, 40, 217, 255))
+    draw.polygon(
+        [(left_x, cy - int(w * 0.14)), (cx, mid_y), (cx, bot_y), (left_x, cy + int(w * 0.14))],
+        fill=(109, 40, 217, 255),
+    )
     # 3. Right Facet (Offline Sync - Vibrant Purple)
-    draw.polygon([(cx, mid_y), (right_x, cy - int(w * 0.14)), (right_x, cy + int(w * 0.14)), (cx, bot_y)], fill=(168, 85, 247, 255))
+    draw.polygon(
+        [(cx, mid_y), (right_x, cy - int(w * 0.14)), (right_x, cy + int(w * 0.14)), (cx, bot_y)],
+        fill=(168, 85, 247, 255),
+    )
 
     # Facet contrast line
     lw = max(1, int(w * 0.015))
@@ -67,6 +78,7 @@ def get_gdrive_icon(size: int = 36) -> ctk.CTkImage:
     final_img = img.resize((size, size), Image.Resampling.LANCZOS)
     _pil_cache[key] = final_img
     return ctk.CTkImage(light_image=final_img, dark_image=final_img, size=(size, size))
+
 
 def get_drive_hardware_icon(size: int = 24, color: str = "#8B5CF6") -> ctk.CTkImage:
     """Generate modern Windows Hard Drive / SSD icon."""
@@ -85,17 +97,16 @@ def get_drive_hardware_icon(size: int = 24, color: str = "#8B5CF6") -> ctk.CTkIm
         [margin, int(w * 0.28), w - margin, int(w * 0.72)],
         radius=int(w * 0.08),
         outline=rgb,
-        width=int(w * 0.06)
+        width=int(w * 0.06),
     )
     # Drive activity LED / disc slot
     draw.ellipse(
-        [w - margin - int(w * 0.18), int(w * 0.45), w - margin - int(w * 0.08), int(w * 0.55)],
-        fill=rgb
+        [w - margin - int(w * 0.18), int(w * 0.45), w - margin - int(w * 0.08), int(w * 0.55)], fill=rgb
     )
     draw.line(
         [(margin + int(w * 0.1), int(w * 0.5)), (margin + int(w * 0.45), int(w * 0.5))],
         fill=rgb,
-        width=int(w * 0.05)
+        width=int(w * 0.05),
     )
 
     final_img = img.resize((size, size), Image.Resampling.LANCZOS)
@@ -108,22 +119,22 @@ def get_drive_hardware_icon(size: int = 24, color: str = "#8B5CF6") -> ctk.CTkIm
         [margin, int(w * 0.28), w - margin, int(w * 0.72)],
         radius=int(w * 0.08),
         outline=rgb,
-        width=int(w * 0.06)
+        width=int(w * 0.06),
     )
     # Drive activity LED / disc slot
     draw.ellipse(
-        [w - margin - int(w * 0.18), int(w * 0.45), w - margin - int(w * 0.08), int(w * 0.55)],
-        fill=rgb
+        [w - margin - int(w * 0.18), int(w * 0.45), w - margin - int(w * 0.08), int(w * 0.55)], fill=rgb
     )
     draw.line(
         [(margin + int(w * 0.1), int(w * 0.5)), (margin + int(w * 0.45), int(w * 0.5))],
         fill=rgb,
-        width=int(w * 0.05)
+        width=int(w * 0.05),
     )
 
     final_img = img.resize((size, size), Image.Resampling.LANCZOS)
     _pil_cache[key] = final_img
     return ctk.CTkImage(light_image=final_img, dark_image=final_img, size=(size, size))
+
 
 def get_symbol_icon(name: str, size: int = 20, color: str = "#F9FAFB") -> ctk.CTkImage:
     """Generate clean minimal UI vector icons (plus, sync, folder, cloud, gear, play, stop, check, alert)."""
@@ -137,7 +148,7 @@ def get_symbol_icon(name: str, size: int = 20, color: str = "#F9FAFB") -> ctk.CT
     # Convert hex color to RGBA
     h = color.lstrip("#")
     if len(h) == 6:
-        rgb = tuple(int(h[i:i+2], 16) for i in (0, 2, 4)) + (255,)
+        rgb = tuple(int(h[i : i + 2], 16) for i in (0, 2, 4)) + (255,)
     else:
         rgb = (255, 255, 255, 255)
 
@@ -165,14 +176,17 @@ def get_symbol_icon(name: str, size: int = 20, color: str = "#F9FAFB") -> ctk.CT
 
     elif name == "folder":
         # Folder tab + body
-        draw.polygon([
-            (int(w * 0.15), int(w * 0.3)),
-            (int(w * 0.45), int(w * 0.3)),
-            (int(w * 0.55), int(w * 0.42)),
-            (int(w * 0.85), int(w * 0.42)),
-            (int(w * 0.85), int(w * 0.75)),
-            (int(w * 0.15), int(w * 0.75))
-        ], fill=rgb)
+        draw.polygon(
+            [
+                (int(w * 0.15), int(w * 0.3)),
+                (int(w * 0.45), int(w * 0.3)),
+                (int(w * 0.55), int(w * 0.42)),
+                (int(w * 0.85), int(w * 0.42)),
+                (int(w * 0.85), int(w * 0.75)),
+                (int(w * 0.15), int(w * 0.75)),
+            ],
+            fill=rgb,
+        )
 
     elif name == "gear":
         # Settings cog
@@ -181,16 +195,17 @@ def get_symbol_icon(name: str, size: int = 20, color: str = "#F9FAFB") -> ctk.CT
         r_in = int(w * 0.16)
         draw.ellipse([mid - r_out, mid - r_out, mid + r_out, mid + r_out], outline=rgb, width=lw)
         draw.ellipse([mid - r_in, mid - r_in, mid + r_in, mid + r_in], fill=rgb)
-        for ang in [0, 45, 90, 135]:
-            draw.line([(mid - r_out - int(w*0.06), mid), (mid + r_out + int(w*0.06), mid)], fill=rgb, width=lw)
+        for _ang in [0, 45, 90, 135]:
+            draw.line(
+                [(mid - r_out - int(w * 0.06), mid), (mid + r_out + int(w * 0.06), mid)], fill=rgb, width=lw
+            )
 
     elif name == "play":
         # Mount / Start triangle
-        draw.polygon([
-            (int(w * 0.3), int(w * 0.2)),
-            (int(w * 0.78), int(w * 0.5)),
-            (int(w * 0.3), int(w * 0.8))
-        ], fill=rgb)
+        draw.polygon(
+            [(int(w * 0.3), int(w * 0.2)), (int(w * 0.78), int(w * 0.5)), (int(w * 0.3), int(w * 0.8))],
+            fill=rgb,
+        )
 
     elif name == "stop":
         # Unmount / Stop square
@@ -220,7 +235,11 @@ def get_symbol_icon(name: str, size: int = 20, color: str = "#F9FAFB") -> ctk.CT
         # Arrow pointing out / open drive in explorer
         draw.rectangle([int(w * 0.2), int(w * 0.35), int(w * 0.65), int(w * 0.8)], outline=rgb, width=lw)
         draw.line([(int(w * 0.5), int(w * 0.5)), (int(w * 0.8), int(w * 0.2))], fill=rgb, width=lw)
-        draw.line([(int(w * 0.6), int(w * 0.2)), (int(w * 0.8), int(w * 0.2)), (int(w * 0.8), int(w * 0.4))], fill=rgb, width=lw)
+        draw.line(
+            [(int(w * 0.6), int(w * 0.2)), (int(w * 0.8), int(w * 0.2)), (int(w * 0.8), int(w * 0.4))],
+            fill=rgb,
+            width=lw,
+        )
 
     else:
         # Generic dot

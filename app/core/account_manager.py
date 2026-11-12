@@ -1,15 +1,16 @@
 """Central account manager coordinating repository, credentials, and cloud quotas."""
 
-from typing import List, Optional, Callable
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 
-from app.models.account import Account, get_sample_accounts
 from app.config.account_repository import AccountRepository
+from app.models.account import Account, get_sample_accounts
 from app.services.credential_service import CredentialService
 from app.services.rclone_service import RcloneService
 from app.utils.logger import get_logger
 
 logger = get_logger("AccountManager")
+
 
 class AccountManager:
     """Manages active Google Drive accounts, storage sync, and persistence."""
@@ -18,14 +19,14 @@ class AccountManager:
         self,
         repository: AccountRepository,
         rclone_service: RcloneService,
-        credential_service: CredentialService
+        credential_service: CredentialService,
     ):
         self.repository = repository
         self.rclone_service = rclone_service
         self.credential_service = credential_service
         self.executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="AccountWorker")
 
-        self._accounts: List[Account] = []
+        self._accounts: list[Account] = []
         self._load_initial_accounts()
 
     def _load_initial_accounts(self):
@@ -39,7 +40,7 @@ class AccountManager:
             self._accounts = get_sample_accounts()
             logger.info("No saved accounts found. Loaded sample accounts for UI demonstration.")
 
-    def get_accounts(self) -> List[Account]:
+    def get_accounts(self) -> list[Account]:
         """Return currently loaded accounts."""
         return self._accounts
 
@@ -100,8 +101,9 @@ class AccountManager:
         logger.info(f"Removed account {account_id}")
         return True
 
-    def refresh_storage_quotas(self, on_complete: Optional[Callable[[], None]] = None):
+    def refresh_storage_quotas(self, on_complete: Callable[[], None] | None = None):
         """Asynchronously refresh storage quotas for real accounts from cloud."""
+
         def _task():
             real_accounts = [a for a in self._accounts if not a.is_sample]
             for acc in real_accounts:

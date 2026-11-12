@@ -9,9 +9,10 @@ Generates:
 - social-preview.png (1280x640 optimized for social cards)
 """
 
-import math
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
+
 
 def draw_nexus_icon(size: int = 512) -> Image.Image:
     """Render the high-precision isometric cloud-drive nexus icon."""
@@ -25,7 +26,13 @@ def draw_nexus_icon(size: int = 512) -> Image.Image:
     rect_box = [margin, margin, canvas_size - margin, canvas_size - margin]
 
     # Draw rounded squircle base with gradient simulation
-    d.rounded_rectangle(rect_box, radius=radius, fill=(15, 23, 42, 255), outline=(124, 58, 237, 220), width=int(6 * (size / 512) * scale))
+    d.rounded_rectangle(
+        rect_box,
+        radius=radius,
+        fill=(15, 23, 42, 255),
+        outline=(124, 58, 237, 220),
+        width=int(6 * (size / 512) * scale),
+    )
 
     # Inner ambient purple glow
     cx, cy = canvas_size // 2, canvas_size // 2 - int(6 * (size / 512) * scale)
@@ -43,15 +50,30 @@ def draw_nexus_icon(size: int = 512) -> Image.Image:
     right_x = cx + int(120 * (size / 512) * scale)
 
     # 1. Top Facet (Cloud Streaming - Cyan gradient)
-    top_pts = [(cx, top_y), (right_x, cy - int(68 * (size / 512) * scale)), (cx, mid_y), (left_x, cy - int(68 * (size / 512) * scale))]
+    top_pts = [
+        (cx, top_y),
+        (right_x, cy - int(68 * (size / 512) * scale)),
+        (cx, mid_y),
+        (left_x, cy - int(68 * (size / 512) * scale)),
+    ]
     d.polygon(top_pts, fill=(6, 182, 212, 255))
 
     # 2. Left Facet (Virtual Drive Letter - Deep Violet)
-    left_pts = [(left_x, cy - int(68 * (size / 512) * scale)), (cx, mid_y), (cx, bot_y), (left_x, cy + int(68 * (size / 512) * scale))]
+    left_pts = [
+        (left_x, cy - int(68 * (size / 512) * scale)),
+        (cx, mid_y),
+        (cx, bot_y),
+        (left_x, cy + int(68 * (size / 512) * scale)),
+    ]
     d.polygon(left_pts, fill=(109, 40, 217, 255))
 
     # 3. Right Facet (Offline Storage - Vibrant Purple)
-    right_pts = [(cx, mid_y), (right_x, cy - int(68 * (size / 512) * scale)), (right_x, cy + int(68 * (size / 512) * scale)), (cx, bot_y)]
+    right_pts = [
+        (cx, mid_y),
+        (right_x, cy - int(68 * (size / 512) * scale)),
+        (right_x, cy + int(68 * (size / 512) * scale)),
+        (cx, bot_y),
+    ]
     d.polygon(right_pts, fill=(168, 85, 247, 255))
 
     # Facet Division lines for sleek contrast
@@ -71,10 +93,14 @@ def draw_nexus_icon(size: int = 512) -> Image.Image:
     hub_r = int(18 * (size / 512) * scale)
     d.ellipse([cx - hub_r, mid_y - hub_r, cx + hub_r, mid_y + hub_r], fill=(255, 255, 255, 255))
     inner_hub_r = int(9 * (size / 512) * scale)
-    d.ellipse([cx - inner_hub_r, mid_y - inner_hub_r, cx + inner_hub_r, mid_y + inner_hub_r], fill=(124, 58, 237, 255))
+    d.ellipse(
+        [cx - inner_hub_r, mid_y - inner_hub_r, cx + inner_hub_r, mid_y + inner_hub_r],
+        fill=(124, 58, 237, 255),
+    )
 
     # Downsample with Lanczos for anti-aliasing
     return img.resize((size, size), Image.Resampling.LANCZOS)
+
 
 def draw_logo(icon_img: Image.Image) -> Image.Image:
     """Render full horizontal brand logo with icon and typography."""
@@ -101,15 +127,18 @@ def draw_logo(icon_img: Image.Image) -> Image.Image:
     d.text((346 * scale, 36 * scale), "Manager", fill=(167, 139, 250, 255), font=font_title)
 
     # Draw Subtitle
-    d.text((168 * scale, 102 * scale), "DESKTOP CLOUD SYNC & STREAMING", fill=(148, 163, 184, 255), font=font_sub)
+    d.text(
+        (168 * scale, 102 * scale), "DESKTOP CLOUD SYNC & STREAMING", fill=(148, 163, 184, 255), font=font_sub
+    )
     d.ellipse([540 * scale, 107 * scale, 546 * scale, 113 * scale], fill=(6, 182, 212, 255))
 
     return img.resize((w, h), Image.Resampling.LANCZOS)
 
+
 def create_marketing_banner(icon_img: Image.Image, screenshot_path: Path) -> Image.Image:
     """Generate 1280x640 GitHub marketing banner embedding the actual application screenshot."""
     w, h = 1280, 640
-    banner = Image.new("RGBA", (w, h), (11, 15, 25, 255)) # Deep Dark Navy #0B0F19
+    banner = Image.new("RGBA", (w, h), (11, 15, 25, 255))  # Deep Dark Navy #0B0F19
     d = ImageDraw.Draw(banner)
 
     # Ambient radial gradient glows in background
@@ -164,7 +193,12 @@ def create_marketing_banner(icon_img: Image.Image, screenshot_path: Path) -> Ima
         by += 34
 
     # Footer note
-    d.text((72, 540), "Engineered for Windows 10 & 11 (x64) • Powered by rclone", fill=(100, 116, 139), font=font_foot)
+    d.text(
+        (72, 540),
+        "Engineered for Windows 10 & 11 (x64) • Powered by rclone",
+        fill=(100, 116, 139),
+        font=font_foot,
+    )
 
     # Right Column: Authentic Application Screenshot in Window Mockup
     if screenshot_path.exists():
@@ -183,13 +217,23 @@ def create_marketing_banner(icon_img: Image.Image, screenshot_path: Path) -> Ima
         # Shadow beneath mockup window
         shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         sd = ImageDraw.Draw(shadow)
-        sd.rounded_rectangle([mock_x - 10, mock_y - 10, mock_x + frame_w + 10, mock_y + frame_h + 16], radius=16, fill=(0, 0, 0, 120))
+        sd.rounded_rectangle(
+            [mock_x - 10, mock_y - 10, mock_x + frame_w + 10, mock_y + frame_h + 16],
+            radius=16,
+            fill=(0, 0, 0, 120),
+        )
         shadow = shadow.filter(ImageFilter.GaussianBlur(14))
         banner.alpha_composite(shadow)
 
         # Window Border & Titlebar
         d = ImageDraw.Draw(banner)
-        d.rounded_rectangle([mock_x, mock_y, mock_x + frame_w, mock_y + frame_h], radius=10, fill=(15, 23, 42), outline=(51, 65, 85), width=2)
+        d.rounded_rectangle(
+            [mock_x, mock_y, mock_x + frame_w, mock_y + frame_h],
+            radius=10,
+            fill=(15, 23, 42),
+            outline=(51, 65, 85),
+            width=2,
+        )
         # Window control dots (mac/win style pill)
         d.ellipse([mock_x + 14, mock_y + 11, mock_x + 24, mock_y + 21], fill=(239, 68, 68))
         d.ellipse([mock_x + 32, mock_y + 11, mock_x + 42, mock_y + 21], fill=(245, 158, 11))
@@ -200,6 +244,7 @@ def create_marketing_banner(icon_img: Image.Image, screenshot_path: Path) -> Ima
         banner.paste(sc_resized, (mock_x + 2, mock_y + title_h + 2))
 
     return banner
+
 
 def create_social_preview(icon_img: Image.Image) -> Image.Image:
     """Generate 1280x640 GitHub social preview card optimized for small embeds."""
@@ -245,10 +290,13 @@ def create_social_preview(icon_img: Image.Image) -> Image.Image:
     pill_text = "Multi-Account  •  Virtual Drive Streaming  •  Offline Sync  •  Windows Credential Vault"
     pill_w = d.textlength(pill_text, font=font_pill) + 48
     pill_x = (w - pill_w) // 2
-    d.rounded_rectangle([pill_x, 460, pill_x + pill_w, 508], radius=24, fill=(21, 30, 46), outline=(37, 51, 74), width=1)
+    d.rounded_rectangle(
+        [pill_x, 460, pill_x + pill_w, 508], radius=24, fill=(21, 30, 46), outline=(37, 51, 74), width=1
+    )
     d.text((pill_x + 24, 474), pill_text, fill=(6, 182, 212), font=font_pill)
 
     return card
+
 
 def main():
     base_dir = Path(__file__).resolve().parent.parent
@@ -282,7 +330,7 @@ def main():
     # Also update assets/icons/app_icon.ico
     app_ico_path = icons_dir / "app_icon.ico"
     ico_imgs[-1].save(str(app_ico_path), format="ICO", sizes=[(s, s) for s in [16, 32, 48, 64, 128, 256]])
-    print(f"[+] Created assets/branding/icon.ico and assets/icons/app_icon.ico (multi-res Windows ICO)")
+    print("[+] Created assets/branding/icon.ico and assets/icons/app_icon.ico (multi-res Windows ICO)")
 
     # 4. Logo PNG
     logo_img = draw_logo(icon_512)
@@ -301,6 +349,7 @@ def main():
     print("[+] Created assets/branding/social-preview.png (1280x640)")
 
     print("[✓] All brand identity assets generated successfully!")
+
 
 if __name__ == "__main__":
     main()

@@ -9,9 +9,11 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 import customtkinter as ctk
-from app.utils.paths import ensure_directories
-from app.utils.logger import get_logger
+
 from app.ui.main_window import MainWindow
+from app.utils.logger import get_logger
+from app.utils.paths import ensure_directories
+
 
 def main():
     """Start GDrive Manager desktop application."""
@@ -28,6 +30,7 @@ def main():
     # Launch GUI
     app = MainWindow()
     app.mainloop()
+
 
 if __name__ == "__main__":
     main()

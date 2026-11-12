@@ -1,7 +1,8 @@
 """Account data model for Google Drive accounts."""
 
-from dataclasses import dataclass, field
-from typing import Optional, Dict, Any, List
+from dataclasses import dataclass
+from typing import Any
+
 
 @dataclass
 class Account:
@@ -20,7 +21,7 @@ class Account:
     used_storage_bytes: int = 0
     total_storage_bytes: int = 15 * 1024 * 1024 * 1024  # Default 15 GB
     is_mounted: bool = False
-    mount_pid: Optional[int] = None
+    mount_pid: int | None = None
     status: str = "Disconnected"  # Connected, Mounted, Syncing, Disconnected, Error
     status_message: str = ""
     is_sample: bool = False
@@ -63,7 +64,7 @@ class Account:
     def formatted_total(self) -> str:
         return self.format_bytes(self.total_storage_bytes)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert account object to serializable dictionary."""
         return {
             "id": self.id,
@@ -86,7 +87,7 @@ class Account:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Account":
+    def from_dict(cls, data: dict[str, Any]) -> "Account":
         """Instantiate Account from dictionary."""
         return cls(
             id=data.get("id", ""),
@@ -108,7 +109,8 @@ class Account:
             is_sample=data.get("is_sample", False),
         )
 
-def get_sample_accounts() -> List[Account]:
+
+def get_sample_accounts() -> list[Account]:
     """Provide realistic sample account data for Phase 1 UI preview."""
     GB = 1024 * 1024 * 1024
     TB = 1024 * GB

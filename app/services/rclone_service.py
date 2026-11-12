@@ -4,24 +4,24 @@ import json
 import os
 import shutil
 import subprocess
-import zipfile
 import urllib.request
+import zipfile
 from pathlib import Path
-from typing import List, Dict, Optional, Any, Tuple
 
-from app.utils.paths import BASE_DIR, get_app_data_dir
 from app.utils.logger import get_logger
+from app.utils.paths import BASE_DIR, get_app_data_dir
 
 logger = get_logger("RcloneService")
+
 
 class RcloneService:
     """Manages rclone executable discovery, config files, and remote operations."""
 
-    def __init__(self, custom_binary_path: Optional[str] = None, custom_config_path: Optional[str] = None):
+    def __init__(self, custom_binary_path: str | None = None, custom_config_path: str | None = None):
         self.custom_binary = custom_binary_path
         self.custom_config = custom_config_path
-        self._rclone_exe: Optional[str] = None
-        self._config_path: Optional[Path] = None
+        self._rclone_exe: str | None = None
+        self._config_path: Path | None = None
 
     @property
     def config_path(self) -> Path:
@@ -36,7 +36,7 @@ class RcloneService:
         return self._config_path
 
     @property
-    def rclone_exe(self) -> Optional[str]:
+    def rclone_exe(self) -> str | None:
         """Resolve rclone executable path across custom, bundled, and system PATH."""
         if self._rclone_exe and Path(self._rclone_exe).exists():
             return self._rclone_exe
@@ -61,7 +61,7 @@ class RcloneService:
         return self._rclone_exe
 
     @rclone_exe.setter
-    def rclone_exe(self, value: Optional[str]):
+    def rclone_exe(self, value: str | None):
         self._rclone_exe = value
 
     @rclone_exe.deleter
@@ -79,7 +79,7 @@ class RcloneService:
         except Exception:
             return False
 
-    def get_version(self) -> Optional[str]:
+    def get_version(self) -> str | None:
         """Return first line of rclone version output."""
         exe = self.rclone_exe
         if not exe:
@@ -92,7 +92,7 @@ class RcloneService:
             logger.warning(f"Failed to query rclone version: {e}")
         return None
 
-    def execute_cmd(self, args: List[str], timeout: int = 30) -> Tuple[int, str, str]:
+    def execute_cmd(self, args: list[str], timeout: int = 30) -> tuple[int, str, str]:
         """Execute rclone subprocess safely using argument list."""
         exe = self.rclone_exe
         if not exe:
@@ -106,11 +106,11 @@ class RcloneService:
             capture_output=True,
             text=True,
             timeout=timeout,
-            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
         )
         return res.returncode, res.stdout, res.stderr
 
-    def list_remotes(self) -> List[str]:
+    def list_remotes(self) -> list[str]:
         """List configured remotes in rclone.conf."""
         if not self.config_path.exists():
             return []
@@ -125,7 +125,7 @@ class RcloneService:
             logger.error(f"Error listing rclone remotes: {e}")
             return []
 
-    def get_account_storage_quota(self, remote_name: str) -> Dict[str, int]:
+    def get_account_storage_quota(self, remote_name: str) -> dict[str, int]:
         """Query real cloud storage quota via 'rclone about <remote>: --json'."""
         target = f"{remote_name}:"
         try:
@@ -162,8 +162,7 @@ class RcloneService:
         try:
             logger.info(f"Downloading rclone from {url}...")
             req = urllib.request.Request(
-                url,
-                headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GDriveManager"}
+                url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GDriveManager"}
             )
             with urllib.request.urlopen(req) as resp, open(zip_path, "wb") as out_f:
                 shutil.copyfileobj(resp, out_f)

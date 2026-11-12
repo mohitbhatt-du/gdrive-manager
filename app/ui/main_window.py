@@ -1,45 +1,44 @@
 """Main application window for GDrive Manager."""
 
-import os
-import subprocess
-from typing import Dict, List, Optional
 from tkinter import messagebox
+
 import customtkinter as ctk
 
-from app.models.account import Account, get_sample_accounts
-from app.models.transfer_job import TransferJob, get_sample_transfers
-from app.config.theme import Colors, Fonts, Dimensions
 from app.__version__ import __version__
-from app.services.rclone_service import RcloneService
-from app.services.credential_service import CredentialService
 from app.config.account_repository import AccountRepository
+from app.config.theme import Colors, Dimensions, Fonts
 from app.core.account_manager import AccountManager
 from app.core.auth_manager import AuthManager
 from app.core.mount_manager import MountManager
-from app.core.transfer_manager import TransferManager
-from app.core.sync_manager import SyncManager
 from app.core.storage_manager import StorageManager
+from app.core.sync_manager import SyncManager
+from app.core.transfer_manager import TransferManager
+from app.models.account import Account
+from app.models.transfer_job import TransferJob
+from app.services.credential_service import CredentialService
+from app.services.rclone_service import RcloneService
 from app.services.windows_drive_service import WindowsDriveService
-from app.ui.sidebar import Sidebar
-from app.ui.dashboard import Dashboard
-from app.ui.streaming_page import StreamingPage
-from app.ui.offline_page import OfflinePage
-from app.ui.transfers_page import TransfersPage
-from app.ui.settings_page import SettingsPage
-from app.ui.dialogs.add_account_dialog import AddAccountDialog
-from app.ui.dialogs.drive_settings_dialog import DriveSettingsDialog
-from app.ui.dialogs.storage_details_dialog import StorageDetailsDialog
-from app.ui.dialogs.confirmation_dialog import ConfirmationDialog
-from app.ui.dialogs.setup_wizard_dialog import SetupWizardDialog
-from app.ui.logs_page import LogsPage
-from app.ui.tray import SystemTrayManager
-from app.utils.notifications import send_notification
-from app.utils.onboarding import is_onboarding_completed, set_onboarding_completed
-from app.utils.paths import BASE_DIR
 from app.ui.assets import get_gdrive_icon
+from app.ui.dashboard import Dashboard
+from app.ui.dialogs.add_account_dialog import AddAccountDialog
+from app.ui.dialogs.confirmation_dialog import ConfirmationDialog
+from app.ui.dialogs.drive_settings_dialog import DriveSettingsDialog
+from app.ui.dialogs.setup_wizard_dialog import SetupWizardDialog
+from app.ui.dialogs.storage_details_dialog import StorageDetailsDialog
+from app.ui.logs_page import LogsPage
+from app.ui.offline_page import OfflinePage
+from app.ui.settings_page import SettingsPage
+from app.ui.sidebar import Sidebar
+from app.ui.streaming_page import StreamingPage
+from app.ui.transfers_page import TransfersPage
+from app.ui.tray import SystemTrayManager
 from app.utils.logger import get_logger
+from app.utils.notifications import send_notification
+from app.utils.onboarding import is_onboarding_completed
+from app.utils.paths import BASE_DIR
 
 logger = get_logger("MainWindow")
+
 
 class MainWindow(ctk.CTk):
     """Main desktop application window coordinating navigation, pages, and dialogs."""
@@ -57,6 +56,7 @@ class MainWindow(ctk.CTk):
         # Set Windows AppUserModelID & Window/Taskbar Icon
         try:
             import ctypes
+
             ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("GDriveManager.App")
         except Exception:
             pass
@@ -77,36 +77,31 @@ class MainWindow(ctk.CTk):
         self.account_manager = AccountManager(
             repository=self.account_repo,
             rclone_service=self.rclone_service,
-            credential_service=self.credential_service
+            credential_service=self.credential_service,
         )
         self.auth_manager = AuthManager(
             rclone_service=self.rclone_service,
             account_repo=self.account_repo,
-            credential_service=self.credential_service
+            credential_service=self.credential_service,
         )
-        self.mount_manager = MountManager(
-            rclone_service=self.rclone_service
-        )
+        self.mount_manager = MountManager(rclone_service=self.rclone_service)
         self.mount_manager.register_callback(self._on_mount_status_updated)
 
         self.transfer_manager = TransferManager()
         self.sync_manager = SyncManager(
-            rclone_service=self.rclone_service,
-            transfer_manager=self.transfer_manager
+            rclone_service=self.rclone_service, transfer_manager=self.transfer_manager
         )
         self.transfer_manager.register_callback(self._on_transfer_job_updated)
 
-        self.storage_manager = StorageManager(
-            rclone_service=self.rclone_service
-        )
+        self.storage_manager = StorageManager(rclone_service=self.rclone_service)
 
         # Intercept window close to gracefully unmount all virtual drives
         self.protocol("WM_DELETE_WINDOW", self._on_close_window)
 
         # State
-        self.accounts: List[Account] = self.account_manager.get_accounts()
-        self.transfer_jobs: List[TransferJob] = self.transfer_manager.get_jobs()
-        self.pages: Dict[str, ctk.CTkFrame] = {}
+        self.accounts: list[Account] = self.account_manager.get_accounts()
+        self.transfer_jobs: list[TransferJob] = self.transfer_manager.get_jobs()
+        self.pages: dict[str, ctk.CTkFrame] = {}
         self.current_page_id: str = "drives"
 
         self._init_layout()
@@ -117,14 +112,14 @@ class MainWindow(ctk.CTk):
         self.sidebar.update_account_count(len(self.accounts))
 
         # System Tray Integration
-        self.tray_manager: Optional[SystemTrayManager] = None
+        self.tray_manager: SystemTrayManager | None = None
         if self.enable_tray:
             try:
                 self.tray_manager = SystemTrayManager(
                     on_show_window=self._show_from_tray,
                     on_mount_all=self._mount_all_drives,
                     on_unmount_all=self._unmount_all_drives,
-                    on_quit=self._force_exit
+                    on_quit=self._force_exit,
                 )
                 self.tray_manager.start()
             except Exception as e:
@@ -148,7 +143,7 @@ class MainWindow(ctk.CTk):
             self,
             on_navigate=self.show_page,
             on_add_drive_click=self.open_add_account_dialog,
-            version=f"v{__version__}"
+            version=f"v{__version__}",
         )
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
@@ -166,7 +161,7 @@ class MainWindow(ctk.CTk):
             on_add_drive=self.open_add_account_dialog,
             on_open_drive=self.handle_open_drive,
             on_toggle_mount=self.handle_toggle_mount,
-            on_settings=self.open_drive_settings_dialog
+            on_settings=self.open_drive_settings_dialog,
         )
         self.pages["drives"] = self.dashboard
 
@@ -175,15 +170,13 @@ class MainWindow(ctk.CTk):
             self.content_container,
             accounts=self.accounts,
             on_toggle_mount=self.handle_toggle_mount,
-            on_open_drive=self.handle_open_drive
+            on_open_drive=self.handle_open_drive,
         )
         self.pages["streaming"] = self.streaming_page
 
         # Offline Page
         self.offline_page = OfflinePage(
-            self.content_container,
-            accounts=self.accounts,
-            on_start_sync=self.handle_start_sync
+            self.content_container, accounts=self.accounts, on_start_sync=self.handle_start_sync
         )
         self.pages["offline"] = self.offline_page
 
@@ -194,7 +187,7 @@ class MainWindow(ctk.CTk):
             on_pause_job=self.transfer_manager.pause_job,
             on_resume_job=self.transfer_manager.resume_job,
             on_cancel_job=self.transfer_manager.cancel_job,
-            on_retry_job=self.transfer_manager.retry_job
+            on_retry_job=self.transfer_manager.retry_job,
         )
         self.pages["transfers"] = self.transfers_page
 
@@ -203,7 +196,7 @@ class MainWindow(ctk.CTk):
             self.content_container,
             rclone_service=self.rclone_service,
             on_view_logs=lambda: self.show_page("logs"),
-            on_rerun_wizard=self.open_setup_wizard
+            on_rerun_wizard=self.open_setup_wizard,
         )
         self.pages["settings"] = self.settings_page
 
@@ -236,7 +229,7 @@ class MainWindow(ctk.CTk):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         center_card.pack(fill="both", expand=True, padx=40, pady=40)
 
@@ -249,7 +242,12 @@ class MainWindow(ctk.CTk):
         title = ctk.CTkLabel(inner, text="GDrive Manager", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY)
         title.pack()
 
-        ver = ctk.CTkLabel(inner, text=f"Version {__version__} (Production Architecture)", font=Fonts.CAPTION, text_color=Colors.ACCENT_LIGHT)
+        ver = ctk.CTkLabel(
+            inner,
+            text=f"Version {__version__} (Production Architecture)",
+            font=Fonts.CAPTION,
+            text_color=Colors.ACCENT_LIGHT,
+        )
         ver.pack(pady=(2, 16))
 
         desc_text = (
@@ -257,10 +255,19 @@ class MainWindow(ctk.CTk):
             "accounts seamlessly into Windows File Explorer through high-performance virtual drive mounting "
             "(WinFsp & rclone) and robust selective offline synchronization."
         )
-        desc = ctk.CTkLabel(inner, text=desc_text, font=Fonts.BODY, text_color=Colors.TEXT_SECONDARY, wraplength=520, justify="center")
+        desc = ctk.CTkLabel(
+            inner,
+            text=desc_text,
+            font=Fonts.BODY,
+            text_color=Colors.TEXT_SECONDARY,
+            wraplength=520,
+            justify="center",
+        )
         desc.pack(pady=(0, 20))
 
-        features_box = ctk.CTkFrame(inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS)
+        features_box = ctk.CTkFrame(
+            inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS
+        )
         features_box.pack(fill="x", padx=40, pady=(0, 20))
 
         feats = [
@@ -279,18 +286,11 @@ class MainWindow(ctk.CTk):
 
     def open_setup_wizard(self):
         """Open First-Launch Onboarding and Setup Wizard."""
-        SetupWizardDialog(
-            self,
-            on_connect_drive=self.open_add_account_dialog
-        )
+        SetupWizardDialog(self, on_connect_drive=self.open_add_account_dialog)
 
     def open_add_account_dialog(self):
         """Open Add Google Drive Account modal."""
-        AddAccountDialog(
-            self,
-            auth_manager=self.auth_manager,
-            on_account_created=self._on_account_added
-        )
+        AddAccountDialog(self, auth_manager=self.auth_manager, on_account_created=self._on_account_added)
 
     def _on_account_added(self, account: Account):
         logger.info(f"Account added: {account.display_name} ({account.drive_letter})")
@@ -302,7 +302,7 @@ class MainWindow(ctk.CTk):
         messagebox.showinfo(
             "Account Connected",
             f"Account '{account.display_name}' has been configured for drive {account.drive_letter}.\n"
-            "Ready for mounting or offline synchronization."
+            "Ready for mounting or offline synchronization.",
         )
 
     def open_drive_settings_dialog(self, account: Account):
@@ -313,16 +313,13 @@ class MainWindow(ctk.CTk):
             storage_manager=self.storage_manager,
             on_account_updated=self._on_account_updated,
             on_account_deleted=self._on_account_deleted,
-            on_view_storage=self.open_storage_details_dialog
+            on_view_storage=self.open_storage_details_dialog,
         )
 
     def open_storage_details_dialog(self, account: Account):
         """Open Storage Details modal."""
         StorageDetailsDialog(
-            self,
-            account=account,
-            storage_manager=self.storage_manager,
-            on_cache_purged=self._on_cache_purged
+            self, account=account, storage_manager=self.storage_manager, on_cache_purged=self._on_cache_purged
         )
 
     def _on_cache_purged(self):
@@ -359,7 +356,10 @@ class MainWindow(ctk.CTk):
             ok, msg = self.mount_manager.unmount_drive(account)
             if ok:
                 self.sidebar.update_status(f"Unmounted drive {account.drive_letter}")
-                send_notification("Drive Unmounted", f"Unmounted Google Drive ({account.display_name}) from {account.drive_letter}\\")
+                send_notification(
+                    "Drive Unmounted",
+                    f"Unmounted Google Drive ({account.display_name}) from {account.drive_letter}\\",
+                )
             else:
                 messagebox.showwarning("Unmount Warning", msg)
         else:
@@ -367,7 +367,10 @@ class MainWindow(ctk.CTk):
             ok, msg = self.mount_manager.mount_drive(account)
             if ok:
                 self.sidebar.update_status(f"Mounted {account.drive_letter}")
-                send_notification("Drive Mounted", f"Mounted Google Drive ({account.display_name}) at {account.drive_letter}\\")
+                send_notification(
+                    "Drive Mounted",
+                    f"Mounted Google Drive ({account.display_name}) at {account.drive_letter}\\",
+                )
             else:
                 messagebox.showerror("Mount Failed", msg)
 
@@ -380,28 +383,35 @@ class MainWindow(ctk.CTk):
             messagebox.showinfo(
                 "Sample Drive Preview",
                 f"Virtual path {account.drive_letter}\\ is a sample preview card.\n\n"
-                "Connect a live Google account to mount and open real streamed cloud files directly in Windows Explorer."
+                "Connect a live Google account to mount and open real streamed cloud files directly in Windows Explorer.",
             )
             return
 
         if not account.is_mounted:
-            messagebox.showinfo("Drive Unmounted", f"Drive {account.drive_letter} is currently unmounted. Please mount it first.")
+            messagebox.showinfo(
+                "Drive Unmounted",
+                f"Drive {account.drive_letter} is currently unmounted. Please mount it first.",
+            )
             return
 
         opened = WindowsDriveService.open_in_explorer(account.drive_letter)
         if not opened:
-            messagebox.showwarning("Explorer", f"Could not open {account.drive_letter}\\ in Windows File Explorer.")
+            messagebox.showwarning(
+                "Explorer", f"Could not open {account.drive_letter}\\ in Windows File Explorer."
+            )
 
     def _on_mount_status_updated(self, account_id: str, new_status: str):
         """Callback invoked when background MountManager status changes."""
+
         def _refresh():
             for acc in self.accounts:
                 if acc.id == account_id:
                     acc.status = new_status
-                    acc.is_mounted = (new_status == "Mounted")
+                    acc.is_mounted = new_status == "Mounted"
                     break
             self.dashboard.update_accounts(self.accounts)
             self.streaming_page.update_accounts(self.accounts)
+
         self.after(0, _refresh)
 
     def _on_close_window(self):
@@ -433,6 +443,7 @@ class MainWindow(ctk.CTk):
             self.deiconify()
             self.lift()
             self.focus_force()
+
         self.after(0, _deiconify)
 
     def _mount_all_drives(self):
@@ -443,6 +454,7 @@ class MainWindow(ctk.CTk):
             self.sidebar.update_status("Mounted all configured drives.")
             self.dashboard.update_accounts(self.accounts)
             self.streaming_page.update_accounts(self.accounts)
+
         self.after(0, _mount)
 
     def _unmount_all_drives(self):
@@ -451,6 +463,7 @@ class MainWindow(ctk.CTk):
             self.sidebar.update_status("Unmounted all drives.")
             self.dashboard.update_accounts(self.accounts)
             self.streaming_page.update_accounts(self.accounts)
+
         self.after(0, _unmount)
 
     def handle_start_sync(self, account: Account, local_path: str, sync_type: str, dry_run: bool):
@@ -471,7 +484,7 @@ class MainWindow(ctk.CTk):
                 speed_bytes_per_sec=8 * 1024 * 1024,
                 eta_seconds=7,
                 status="Running",
-                is_sample=True
+                is_sample=True,
             )
             self.transfer_manager.jobs.insert(0, demo_job)
             self.transfers_page.update_jobs(self.transfer_manager.get_jobs())
@@ -481,6 +494,7 @@ class MainWindow(ctk.CTk):
 
         # Destructive Mirror safety warning
         if "Mirror/Sync" in sync_type and not dry_run:
+
             def _proceed_mirror():
                 self._dispatch_sync(account, local_path, sync_type, dry_run=False)
 
@@ -495,7 +509,7 @@ class MainWindow(ctk.CTk):
                 confirm_text="Proceed & Sync",
                 cancel_text="Cancel",
                 is_destructive=True,
-                on_confirm=_proceed_mirror
+                on_confirm=_proceed_mirror,
             )
             return
 
@@ -518,6 +532,8 @@ class MainWindow(ctk.CTk):
                 send_notification("Transfer Completed", f"{job.item_name} finished successfully.")
             elif job.status == "Failed":
                 self._notified_jobs.add(job.id)
-                send_notification("Transfer Failed", f"{job.item_name} failed: {job.error_message or 'Unknown error'}")
+                send_notification(
+                    "Transfer Failed", f"{job.item_name} failed: {job.error_message or 'Unknown error'}"
+                )
 
         self.after(0, lambda: self.transfers_page.update_jobs(self.transfer_manager.get_jobs()))

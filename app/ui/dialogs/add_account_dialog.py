@@ -1,14 +1,16 @@
 """Add Google Drive Account modal dialog with live Google OAuth integration."""
 
-from typing import Callable, Optional
+from collections.abc import Callable
 from tkinter import filedialog, messagebox
+
 import customtkinter as ctk
 
+from app.config.theme import Colors, Dimensions, Fonts
+from app.core.auth_manager import AuthManager
 from app.models.account import Account
-from app.config.theme import Colors, Fonts, Dimensions
 from app.ui.assets import get_gdrive_icon, get_symbol_icon
 from app.utils.platform_checks import get_available_drive_letters
-from app.core.auth_manager import AuthManager
+
 
 class AddAccountDialog(ctk.CTkToplevel):
     """Modal dialog for configuring and connecting a new Google Drive account."""
@@ -16,9 +18,9 @@ class AddAccountDialog(ctk.CTkToplevel):
     def __init__(
         self,
         master,
-        auth_manager: Optional[AuthManager] = None,
-        on_account_created: Optional[Callable[[Account], None]] = None,
-        **kwargs
+        auth_manager: AuthManager | None = None,
+        on_account_created: Callable[[Account], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, **kwargs)
         self.title("Add Google Drive Account")
@@ -64,7 +66,7 @@ class AddAccountDialog(ctk.CTkToplevel):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         container.pack(fill="both", expand=True, padx=16, pady=16)
 
@@ -81,14 +83,23 @@ class AddAccountDialog(ctk.CTkToplevel):
         head_box = ctk.CTkFrame(head_row, fg_color="transparent")
         head_box.pack(side="left")
 
-        t_lbl = ctk.CTkLabel(head_box, text="Connect Google Account", font=Fonts.CARD_TITLE, text_color=Colors.TEXT_PRIMARY)
+        t_lbl = ctk.CTkLabel(
+            head_box, text="Connect Google Account", font=Fonts.CARD_TITLE, text_color=Colors.TEXT_PRIMARY
+        )
         t_lbl.pack(anchor="w")
 
-        s_lbl = ctk.CTkLabel(head_box, text="Mount as a virtual drive or maintain offline storage", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED)
+        s_lbl = ctk.CTkLabel(
+            head_box,
+            text="Mount as a virtual drive or maintain offline storage",
+            font=Fonts.CAPTION,
+            text_color=Colors.TEXT_MUTED,
+        )
         s_lbl.pack(anchor="w")
 
         # 1. Display Name Entry
-        n_lbl = ctk.CTkLabel(inner, text="Account Display Name:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        n_lbl = ctk.CTkLabel(
+            inner, text="Account Display Name:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         n_lbl.pack(anchor="w", pady=(0, 4))
 
         self.name_entry = ctk.CTkEntry(
@@ -98,12 +109,14 @@ class AddAccountDialog(ctk.CTkToplevel):
             font=Fonts.BODY,
             fg_color=Colors.INPUT_BG,
             border_color=Colors.INPUT_BORDER,
-            height=36
+            height=36,
         )
         self.name_entry.pack(fill="x", pady=(0, 14))
 
         # 2. Windows Drive Letter Selection
-        l_lbl = ctk.CTkLabel(inner, text="Assign Windows Drive Letter:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        l_lbl = ctk.CTkLabel(
+            inner, text="Assign Windows Drive Letter:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         l_lbl.pack(anchor="w", pady=(0, 4))
 
         letter_menu = ctk.CTkOptionMenu(
@@ -115,18 +128,20 @@ class AddAccountDialog(ctk.CTkToplevel):
             button_color=Colors.ACCENT_PRIMARY,
             button_hover_color=Colors.ACCENT_HOVER,
             dropdown_fg_color=Colors.CARD_BG,
-            height=36
+            height=36,
         )
         letter_menu.pack(fill="x", pady=(0, 14))
 
         # 3. Operating Mode Selection
-        m_lbl = ctk.CTkLabel(inner, text="Storage Operating Mode:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        m_lbl = ctk.CTkLabel(
+            inner, text="Storage Operating Mode:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         m_lbl.pack(anchor="w", pady=(0, 4))
 
         modes = [
             "Hybrid (Streaming + Offline)",
             "Streaming Only (Explorer Virtual Drive)",
-            "Offline Only (Local Directory Sync)"
+            "Offline Only (Local Directory Sync)",
         ]
         mode_menu = ctk.CTkOptionMenu(
             inner,
@@ -138,7 +153,7 @@ class AddAccountDialog(ctk.CTkToplevel):
             button_color=Colors.ACCENT_PRIMARY,
             button_hover_color=Colors.ACCENT_HOVER,
             dropdown_fg_color=Colors.CARD_BG,
-            height=36
+            height=36,
         )
         mode_menu.pack(fill="x", pady=(0, 14))
 
@@ -146,7 +161,12 @@ class AddAccountDialog(ctk.CTkToplevel):
         self.offline_frame = ctk.CTkFrame(inner, fg_color="transparent")
         self.offline_frame.pack(fill="x", pady=(0, 14))
 
-        o_lbl = ctk.CTkLabel(self.offline_frame, text="Offline Local Directory:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        o_lbl = ctk.CTkLabel(
+            self.offline_frame,
+            text="Offline Local Directory:",
+            font=Fonts.BODY_BOLD,
+            text_color=Colors.TEXT_PRIMARY,
+        )
         o_lbl.pack(anchor="w", pady=(0, 4))
 
         path_row = ctk.CTkFrame(self.offline_frame, fg_color="transparent")
@@ -159,7 +179,7 @@ class AddAccountDialog(ctk.CTkToplevel):
             font=Fonts.BODY,
             fg_color=Colors.INPUT_BG,
             border_color=Colors.INPUT_BORDER,
-            height=36
+            height=36,
         )
         path_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
@@ -172,7 +192,7 @@ class AddAccountDialog(ctk.CTkToplevel):
             border_width=1,
             border_color=Colors.CARD_BORDER,
             height=36,
-            command=self._browse_offline_path
+            command=self._browse_offline_path,
         )
         browse_btn.pack(side="right")
 
@@ -182,7 +202,7 @@ class AddAccountDialog(ctk.CTkToplevel):
             fg_color=Colors.CARD_INNER,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         info_box.pack(fill="x", pady=(0, 14))
 
@@ -196,16 +216,13 @@ class AddAccountDialog(ctk.CTkToplevel):
             font=Fonts.CAPTION,
             text_color=Colors.TEXT_SECONDARY,
             wraplength=420,
-            justify="left"
+            justify="left",
         )
         info_lbl.pack(padx=14, pady=(10, 4))
 
         # Dynamic Status Label
         self.live_status_lbl = ctk.CTkLabel(
-            info_box,
-            textvariable=self.status_var,
-            font=Fonts.BODY_BOLD,
-            text_color=Colors.ACCENT_LIGHT
+            info_box, textvariable=self.status_var, font=Fonts.BODY_BOLD, text_color=Colors.ACCENT_LIGHT
         )
         self.live_status_lbl.pack(padx=14, pady=(0, 8))
 
@@ -223,7 +240,7 @@ class AddAccountDialog(ctk.CTkToplevel):
             border_color=Colors.CARD_BORDER,
             height=38,
             width=100,
-            command=self.destroy
+            command=self.destroy,
         )
         self.cancel_btn.pack(side="right")
 
@@ -237,7 +254,7 @@ class AddAccountDialog(ctk.CTkToplevel):
             hover_color=Colors.ACCENT_HOVER,
             height=38,
             width=180,
-            command=self._handle_submit
+            command=self._handle_submit,
         )
         self.submit_btn.pack(side="right", padx=(0, 10))
 
@@ -277,6 +294,7 @@ class AddAccountDialog(ctk.CTkToplevel):
                     self.destroy()
                     if self.on_account_created:
                         self.on_account_created(account)
+
                 self.after(0, _done)
 
             def on_error(err: str):
@@ -285,6 +303,7 @@ class AddAccountDialog(ctk.CTkToplevel):
                     self.cancel_btn.configure(state="normal")
                     self.status_var.set("")
                     messagebox.showerror("Authentication Error", err)
+
                 self.after(0, _err)
 
             self.auth_manager.start_google_auth(
@@ -296,7 +315,7 @@ class AddAccountDialog(ctk.CTkToplevel):
                 cache_size=self.cache_size_var.get(),
                 on_status_update=on_status,
                 on_success=on_success,
-                on_error=on_error
+                on_error=on_error,
             )
         else:
             # When rclone binary is not yet detected on system
@@ -315,7 +334,7 @@ class AddAccountDialog(ctk.CTkToplevel):
                 total_storage_bytes=15 * 1024 * 1024 * 1024,
                 is_mounted=False,
                 status="Connected",
-                is_sample=False
+                is_sample=False,
             )
             self.destroy()
             if self.on_account_created:

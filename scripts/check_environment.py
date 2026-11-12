@@ -1,10 +1,9 @@
 """System and environment verification utility for GDrive Manager developers and CI."""
 
-import os
-import sys
 import platform
-import subprocess
+import sys
 from pathlib import Path
+
 
 def check_env():
     print("=" * 65)
@@ -37,6 +36,7 @@ def check_env():
 
     # 3. Bundled Rclone Check
     from app.services.rclone_service import RcloneService
+
     svc = RcloneService()
     exe = svc.rclone_exe
     if exe and Path(exe).exists():
@@ -48,13 +48,15 @@ def check_env():
 
     # 4. WinFsp Virtual Filesystem Driver
     from app.utils.platform_checks import is_winfsp_installed
+
     if is_winfsp_installed():
         print("[✓] WinFsp Driver: Active and ready for virtual drive mounting.")
     else:
         print("[!] WinFsp Driver: Not installed. Run 'winget install WinFsp.WinFsp' for streaming mode.")
 
     # 5. App Data Permissions
-    from app.utils.paths import get_app_data_dir, LOGS_DIR
+    from app.utils.paths import get_app_data_dir
+
     app_data = get_app_data_dir()
     print(f"[*] App Data Directory: {app_data}")
     try:
@@ -73,6 +75,7 @@ def check_env():
         print("[!] Environment verification completed with warnings/errors.")
     print("=" * 65)
     return 0 if all_ok else 1
+
 
 if __name__ == "__main__":
     sys.exit(check_env())

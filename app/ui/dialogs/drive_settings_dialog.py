@@ -1,16 +1,17 @@
 """Drive Settings & Account Configuration modal dialog with Hybrid Mode conflict validation."""
 
-from typing import Callable, Optional
-from pathlib import Path
+import os
+from collections.abc import Callable
 from tkinter import filedialog, messagebox
+
 import customtkinter as ctk
 
-from app.models.account import Account
-from app.config.theme import Colors, Fonts, Dimensions
-from app.ui.assets import get_symbol_icon
-from app.utils.platform_checks import get_available_drive_letters
-from app.ui.dialogs.confirmation_dialog import ConfirmationDialog
+from app.config.theme import Colors, Dimensions, Fonts
 from app.core.storage_manager import StorageManager
+from app.models.account import Account
+from app.ui.dialogs.confirmation_dialog import ConfirmationDialog
+from app.utils.platform_checks import get_available_drive_letters
+
 
 class DriveSettingsDialog(ctk.CTkToplevel):
     """Modal dialog for fine-tuning individual Google Drive account settings and hybrid mode."""
@@ -19,11 +20,11 @@ class DriveSettingsDialog(ctk.CTkToplevel):
         self,
         master,
         account: Account,
-        storage_manager: Optional[StorageManager] = None,
-        on_account_updated: Optional[Callable[[Account], None]] = None,
-        on_account_deleted: Optional[Callable[[Account], None]] = None,
-        on_view_storage: Optional[Callable[[Account], None]] = None,
-        **kwargs
+        storage_manager: StorageManager | None = None,
+        on_account_updated: Callable[[Account], None] | None = None,
+        on_account_deleted: Callable[[Account], None] | None = None,
+        on_view_storage: Callable[[Account], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, **kwargs)
         self.account = account
@@ -69,7 +70,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         container.pack(fill="both", expand=True, padx=16, pady=16)
 
@@ -83,10 +84,17 @@ class DriveSettingsDialog(ctk.CTkToplevel):
         head_box = ctk.CTkFrame(head_row, fg_color="transparent")
         head_box.pack(side="left")
 
-        t_lbl = ctk.CTkLabel(head_box, text="Drive & Account Options", font=Fonts.CARD_TITLE, text_color=Colors.TEXT_PRIMARY)
+        t_lbl = ctk.CTkLabel(
+            head_box, text="Drive & Account Options", font=Fonts.CARD_TITLE, text_color=Colors.TEXT_PRIMARY
+        )
         t_lbl.pack(anchor="w")
 
-        em_lbl = ctk.CTkLabel(head_box, text=f"Remote: {self.account.remote_name} ({self.account.email})", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED)
+        em_lbl = ctk.CTkLabel(
+            head_box,
+            text=f"Remote: {self.account.remote_name} ({self.account.email})",
+            font=Fonts.CAPTION,
+            text_color=Colors.TEXT_MUTED,
+        )
         em_lbl.pack(anchor="w")
 
         storage_btn = ctk.CTkButton(
@@ -98,12 +106,14 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             border_width=1,
             border_color=Colors.CARD_BORDER,
             height=28,
-            command=self._handle_view_storage
+            command=self._handle_view_storage,
         )
         storage_btn.pack(side="right")
 
         # 1. Display Name
-        n_lbl = ctk.CTkLabel(inner, text="Display Name:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        n_lbl = ctk.CTkLabel(
+            inner, text="Display Name:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         n_lbl.pack(anchor="w", pady=(0, 2))
 
         n_entry = ctk.CTkEntry(
@@ -112,18 +122,25 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             font=Fonts.BODY,
             fg_color=Colors.INPUT_BG,
             border_color=Colors.INPUT_BORDER,
-            height=32
+            height=32,
         )
         n_entry.pack(fill="x", pady=(0, 10))
 
         # 2. Operating Modes (Hybrid separation)
-        mode_box = ctk.CTkFrame(inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS)
+        mode_box = ctk.CTkFrame(
+            inner, fg_color=Colors.CARD_INNER, corner_radius=Dimensions.CARD_CORNER_RADIUS
+        )
         mode_box.pack(fill="x", pady=(0, 10))
 
         mode_inner = ctk.CTkFrame(mode_box, fg_color="transparent")
         mode_inner.pack(fill="x", padx=12, pady=8)
 
-        m_title = ctk.CTkLabel(mode_inner, text="Storage Modes (Independent Configuration):", font=Fonts.BADGE, text_color=Colors.TEXT_MUTED)
+        m_title = ctk.CTkLabel(
+            mode_inner,
+            text="Storage Modes (Independent Configuration):",
+            font=Fonts.BADGE,
+            text_color=Colors.TEXT_MUTED,
+        )
         m_title.pack(anchor="w", pady=(0, 4))
 
         st_chk = ctk.CTkCheckBox(
@@ -131,7 +148,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             text="Enable Streaming Mode (Virtual drive letter)",
             variable=self.streaming_var,
             font=Fonts.BODY,
-            fg_color=Colors.ACCENT_PRIMARY
+            fg_color=Colors.ACCENT_PRIMARY,
         )
         st_chk.pack(anchor="w", pady=(0, 4))
 
@@ -140,7 +157,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             text="Enable Offline Storage (Local directory backup/mirror)",
             variable=self.offline_var,
             font=Fonts.BODY,
-            fg_color=Colors.ACCENT_PRIMARY
+            fg_color=Colors.ACCENT_PRIMARY,
         )
         off_chk.pack(anchor="w")
 
@@ -152,7 +169,9 @@ class DriveSettingsDialog(ctk.CTkToplevel):
         c1 = ctk.CTkFrame(two_col, fg_color="transparent")
         c1.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
-        l_lbl = ctk.CTkLabel(c1, text="Assigned Drive Letter:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        l_lbl = ctk.CTkLabel(
+            c1, text="Assigned Drive Letter:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         l_lbl.pack(anchor="w", pady=(0, 2))
 
         avail = [self.account.drive_letter] + get_available_drive_letters()
@@ -165,7 +184,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             font=Fonts.BODY,
             fg_color=Colors.INPUT_BG,
             button_color=Colors.ACCENT_PRIMARY,
-            height=32
+            height=32,
         )
         letter_menu.pack(fill="x")
 
@@ -173,7 +192,9 @@ class DriveSettingsDialog(ctk.CTkToplevel):
         c2 = ctk.CTkFrame(two_col, fg_color="transparent")
         c2.pack(side="right", fill="x", expand=True, padx=(8, 0))
 
-        cs_lbl = ctk.CTkLabel(c2, text="Max Cache Size:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        cs_lbl = ctk.CTkLabel(
+            c2, text="Max Cache Size:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         cs_lbl.pack(anchor="w", pady=(0, 2))
 
         cache_menu = ctk.CTkOptionMenu(
@@ -183,12 +204,14 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             font=Fonts.BODY,
             fg_color=Colors.INPUT_BG,
             button_color=Colors.ACCENT_PRIMARY,
-            height=32
+            height=32,
         )
         cache_menu.pack(fill="x")
 
         # 4. Offline Directory
-        o_lbl = ctk.CTkLabel(inner, text="Offline Local Directory:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        o_lbl = ctk.CTkLabel(
+            inner, text="Offline Local Directory:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         o_lbl.pack(anchor="w", pady=(0, 2))
 
         path_row = ctk.CTkFrame(inner, fg_color="transparent")
@@ -200,7 +223,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             font=Fonts.BODY,
             fg_color=Colors.INPUT_BG,
             border_color=Colors.INPUT_BORDER,
-            height=32
+            height=32,
         )
         path_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
@@ -213,7 +236,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             border_width=1,
             border_color=Colors.CARD_BORDER,
             height=32,
-            command=self._browse_path
+            command=self._browse_path,
         )
         b_btn.pack(side="right")
 
@@ -226,7 +249,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             text="Mount as Read-Only (Prevents cloud modifications)",
             variable=self.read_only_var,
             font=Fonts.BODY,
-            fg_color=Colors.ACCENT_PRIMARY
+            fg_color=Colors.ACCENT_PRIMARY,
         )
         ro_chk.pack(anchor="w", pady=(0, 6))
 
@@ -235,7 +258,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             text="Automatically mount this drive when application starts",
             variable=self.auto_mount_var,
             font=Fonts.BODY,
-            fg_color=Colors.ACCENT_PRIMARY
+            fg_color=Colors.ACCENT_PRIMARY,
         )
         am_chk.pack(anchor="w")
 
@@ -245,7 +268,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             fg_color=Colors.CARD_INNER,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         danger_box.pack(fill="x", pady=(0, 14))
 
@@ -256,7 +279,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             danger_inner,
             text="Disconnect account and release assigned Windows drive letter.",
             font=Fonts.CAPTION,
-            text_color=Colors.TEXT_MUTED
+            text_color=Colors.TEXT_MUTED,
         )
         rem_desc.pack(side="left")
 
@@ -267,7 +290,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             fg_color=Colors.STATUS_ERROR,
             hover_color="#DC2626",
             height=28,
-            command=self._handle_remove
+            command=self._handle_remove,
         )
         rem_btn.pack(side="right")
 
@@ -285,7 +308,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             border_color=Colors.CARD_BORDER,
             height=36,
             width=90,
-            command=self.destroy
+            command=self.destroy,
         )
         cancel_btn.pack(side="right")
 
@@ -297,7 +320,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             hover_color=Colors.ACCENT_HOVER,
             height=36,
             width=130,
-            command=self._handle_save
+            command=self._handle_save,
         )
         save_btn.pack(side="right", padx=(0, 10))
 
@@ -317,11 +340,15 @@ class DriveSettingsDialog(ctk.CTkToplevel):
 
         if self.offline_var.get() and offline_p:
             clean_off = os.path.abspath(offline_p).upper()
-            if clean_off.startswith(f"{assigned_letter}\\") or clean_off == f"{assigned_letter}:" or clean_off == f"{assigned_letter}:\\":
+            if (
+                clean_off.startswith(f"{assigned_letter}\\")
+                or clean_off == f"{assigned_letter}:"
+                or clean_off == f"{assigned_letter}:\\"
+            ):
                 messagebox.showerror(
                     "Storage Target Conflict",
                     f"Hybrid Mode Violation: The offline directory cannot be placed inside the virtual streaming drive {assigned_letter}:\\!\n\n"
-                    "Streaming and offline storage must use separate physical disk locations and independent configurations."
+                    "Streaming and offline storage must use separate physical disk locations and independent configurations.",
                 )
                 return
 
@@ -345,7 +372,7 @@ class DriveSettingsDialog(ctk.CTkToplevel):
             message=f"Are you sure you want to remove '{self.account.display_name}'? The drive will be unmounted.",
             confirm_text="Remove",
             is_destructive=True,
-            on_confirm=self._do_remove
+            on_confirm=self._do_remove,
         )
 
     def _do_remove(self):

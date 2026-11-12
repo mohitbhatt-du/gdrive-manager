@@ -2,13 +2,13 @@
 
 import sys
 from pathlib import Path
-import pytest
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from app.services.credential_service import CredentialService
+
 
 def test_credential_store_and_retrieve(mocker):
     """Test storing and retrieving OAuth token payload in Windows Credential Manager."""

@@ -1,7 +1,9 @@
 """Onboarding and first-launch state management."""
 
 from pathlib import Path
-from app.utils.paths import get_app_data_dir, DATA_DIR
+
+from app.utils.paths import DATA_DIR, get_app_data_dir
+
 
 def _get_marker_path() -> Path:
     try:
@@ -9,9 +11,11 @@ def _get_marker_path() -> Path:
     except Exception:
         return DATA_DIR / ".onboarding_completed"
 
+
 def is_onboarding_completed() -> bool:
     """Return True if user has previously completed or dismissed first-launch onboarding."""
     return _get_marker_path().exists()
+
 
 def set_onboarding_completed(completed: bool = True):
     """Mark onboarding status."""
@@ -28,6 +32,7 @@ def set_onboarding_completed(completed: bool = True):
                 marker.unlink()
             except Exception:
                 pass
+
 
 def reset_onboarding():
     """Reset onboarding marker to show wizard on next launch."""

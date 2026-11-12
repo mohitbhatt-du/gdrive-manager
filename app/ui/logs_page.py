@@ -1,14 +1,13 @@
 """Interactive in-app logs viewer and diagnostic report generator."""
 
-import os
 import subprocess
-from pathlib import Path
 from tkinter import messagebox
+
 import customtkinter as ctk
 
-from app.config.theme import Colors, Fonts, Dimensions
+from app.config.theme import Colors, Dimensions, Fonts
 from app.utils.paths import LOGS_DIR
-from app.ui.assets import get_symbol_icon
+
 
 class LogsPage(ctk.CTkFrame):
     """View dedicated to real-time application and rclone process logs."""
@@ -31,10 +30,7 @@ class LogsPage(ctk.CTkFrame):
         title_box.pack(side="left")
 
         title = ctk.CTkLabel(
-            title_box,
-            text="Diagnostics & Logs",
-            font=Fonts.HERO,
-            text_color=Colors.TEXT_PRIMARY
+            title_box, text="Diagnostics & Logs", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY
         )
         title.pack(anchor="w")
 
@@ -42,7 +38,7 @@ class LogsPage(ctk.CTkFrame):
             title_box,
             text="Real-time execution diagnostics, rclone subprocess events, and mount telemetry",
             font=Fonts.SUBTITLE,
-            text_color=Colors.TEXT_SECONDARY
+            text_color=Colors.TEXT_SECONDARY,
         )
         subtitle.pack(anchor="w", pady=(2, 0))
 
@@ -59,7 +55,7 @@ class LogsPage(ctk.CTkFrame):
             fg_color=Colors.CARD_BG,
             button_color=Colors.ACCENT_PRIMARY,
             height=34,
-            width=120
+            width=120,
         )
         filter_menu.pack(side="left", padx=(0, 8))
 
@@ -73,7 +69,7 @@ class LogsPage(ctk.CTkFrame):
             border_color=Colors.CARD_BORDER,
             height=34,
             width=80,
-            command=self.refresh_logs
+            command=self.refresh_logs,
         )
         refresh_btn.pack(side="left", padx=(0, 8))
 
@@ -87,7 +83,7 @@ class LogsPage(ctk.CTkFrame):
             border_color=Colors.CARD_BORDER,
             height=34,
             width=130,
-            command=self._open_in_notepad
+            command=self._open_in_notepad,
         )
         open_file_btn.pack(side="left")
 
@@ -97,7 +93,7 @@ class LogsPage(ctk.CTkFrame):
             fg_color=Colors.INPUT_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         term_card.pack(fill="both", expand=True, padx=28, pady=(0, 20))
 
@@ -107,7 +103,7 @@ class LogsPage(ctk.CTkFrame):
             text_color=Colors.TEXT_PRIMARY,
             fg_color="transparent",
             wrap="none",
-            activate_scrollbars=True
+            activate_scrollbars=True,
         )
         self.text_box.pack(fill="both", expand=True, padx=12, pady=12)
 
@@ -123,7 +119,7 @@ class LogsPage(ctk.CTkFrame):
             return
 
         try:
-            with open(self.log_file, "r", encoding="utf-8", errors="replace") as f:
+            with open(self.log_file, encoding="utf-8", errors="replace") as f:
                 lines = f.readlines()
 
             mode = self.filter_var.get()

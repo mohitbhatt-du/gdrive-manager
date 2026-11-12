@@ -1,19 +1,20 @@
 """Transfer job data model for downloads, uploads, and synchronizations."""
 
 from dataclasses import dataclass
-from typing import Optional, List
-import time
+
 
 @dataclass
 class TransferJob:
     id: str
     account_name: str
     item_name: str
-    operation_type: str  # "Download", "Upload", "Sync (Cloud -> Local)", "Sync (Local -> Cloud)", "Two-Way Sync"
+    operation_type: (
+        str  # "Download", "Upload", "Sync (Cloud -> Local)", "Sync (Local -> Cloud)", "Two-Way Sync"
+    )
     total_bytes: int
     transferred_bytes: int = 0
     speed_bytes_per_sec: float = 0.0
-    eta_seconds: Optional[int] = None
+    eta_seconds: int | None = None
     status: str = "Queued"  # "Queued", "Running", "Paused", "Completed", "Failed", "Cancelled"
     error_message: str = ""
     is_sample: bool = False
@@ -57,7 +58,8 @@ class TransferJob:
             return f"{hours}h {mins:02d}m"
         return f"{mins:02d}m {secs:02d}s"
 
-def get_sample_transfers() -> List[TransferJob]:
+
+def get_sample_transfers() -> list[TransferJob]:
     """Provide sample transfer jobs for Phase 1 UI preview."""
     MB = 1024 * 1024
     GB = 1024 * MB
@@ -72,7 +74,7 @@ def get_sample_transfers() -> List[TransferJob]:
             speed_bytes_per_sec=4.2 * MB,
             eta_seconds=3,
             status="Running",
-            is_sample=True
+            is_sample=True,
         ),
         TransferJob(
             id="job-102",
@@ -84,7 +86,7 @@ def get_sample_transfers() -> List[TransferJob]:
             speed_bytes_per_sec=12.5 * MB,
             eta_seconds=49,
             status="Running",
-            is_sample=True
+            is_sample=True,
         ),
         TransferJob(
             id="job-103",
@@ -96,7 +98,7 @@ def get_sample_transfers() -> List[TransferJob]:
             speed_bytes_per_sec=0,
             eta_seconds=0,
             status="Completed",
-            is_sample=True
+            is_sample=True,
         ),
         TransferJob(
             id="job-104",
@@ -108,7 +110,7 @@ def get_sample_transfers() -> List[TransferJob]:
             speed_bytes_per_sec=0,
             eta_seconds=None,
             status="Paused",
-            is_sample=True
+            is_sample=True,
         ),
         TransferJob(
             id="job-105",
@@ -121,6 +123,6 @@ def get_sample_transfers() -> List[TransferJob]:
             eta_seconds=None,
             status="Failed",
             error_message="Access denied: Token expired or permission revoked",
-            is_sample=True
+            is_sample=True,
         ),
     ]

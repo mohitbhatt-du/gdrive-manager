@@ -2,17 +2,18 @@
 
 import os
 import subprocess
-from typing import Optional, Dict
+
 from app.utils.logger import get_logger
 
 try:
     import win32api
-    import win32file
+
     HAS_WIN32 = True
 except ImportError:
     HAS_WIN32 = False
 
 logger = get_logger("WindowsDriveService")
+
 
 class WindowsDriveService:
     """Provides native Windows drive letter queries, Explorer invocation, and volume inspection."""
@@ -25,7 +26,7 @@ class WindowsDriveService:
         return os.path.exists(drive_path)
 
     @staticmethod
-    def get_volume_info(drive_letter: str) -> Optional[Dict[str, str]]:
+    def get_volume_info(drive_letter: str) -> dict[str, str] | None:
         """Query native Windows volume information (label, filesystem)."""
         letter = drive_letter.rstrip("\\")
         drive_path = f"{letter}\\"
@@ -37,7 +38,7 @@ class WindowsDriveService:
             return {
                 "volume_name": info[0],
                 "serial_number": str(info[1]),
-                "fs_name": info[4]  # e.g., 'WinFsp.rclone' or 'NTFS'
+                "fs_name": info[4],  # e.g., 'WinFsp.rclone' or 'NTFS'
             }
         except Exception as e:
             logger.debug(f"Could not query volume information for {drive_path}: {e}")

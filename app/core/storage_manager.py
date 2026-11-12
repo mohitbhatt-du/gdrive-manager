@@ -2,21 +2,23 @@
 
 import os
 import shutil
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Callable
-from concurrent.futures import ThreadPoolExecutor
 
 from app.models.account import Account
-from app.utils.paths import get_app_data_dir
 from app.services.rclone_service import RcloneService
 from app.utils.logger import get_logger
+from app.utils.paths import get_app_data_dir
 
 logger = get_logger("StorageManager")
+
 
 @dataclass
 class StorageBreakdown:
     """Detailed storage metrics distinguishing cloud, offline directory, and VFS streaming cache."""
+
     account_id: str
     cloud_used_bytes: int = 0
     cloud_total_bytes: int = 0
@@ -58,6 +60,7 @@ class StorageBreakdown:
             return 0.0
         pct = (self.cloud_used_bytes / self.cloud_total_bytes) * 100
         return min(max(pct, 0.0), 100.0)
+
 
 class StorageManager:
     """Manages computation and isolation of cloud, offline, and temporary cache metrics."""
@@ -130,11 +133,12 @@ class StorageManager:
             offline_file_count=offline_files,
             vfs_cache_used_bytes=cache_bytes,
             vfs_cache_limit=account.cache_size,
-            is_quota_exact=is_exact
+            is_quota_exact=is_exact,
         )
 
     def calculate_async(self, account: Account, callback: Callable[[StorageBreakdown], None]):
         """Asynchronously compute breakdown and invoke callback."""
+
         def _task():
             breakdown = self.calculate_storage_breakdown(account)
             callback(breakdown)

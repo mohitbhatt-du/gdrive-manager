@@ -3,12 +3,14 @@
 import sys
 import winreg
 from pathlib import Path
+
 from app.utils.logger import get_logger
 
 logger = get_logger("StartupManager")
 
 REG_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 APP_NAME = "GDriveManager"
+
 
 def get_launch_command() -> str:
     """Return command string to execute GDrive Manager on Windows startup."""
@@ -17,6 +19,7 @@ def get_launch_command() -> str:
     python_exe = sys.executable
     main_py = Path(__file__).resolve().parent.parent.parent / "main.py"
     return f'"{python_exe}" "{main_py}"'
+
 
 def is_startup_enabled() -> bool:
     """Check if application is registered in Windows startup registry."""
@@ -29,6 +32,7 @@ def is_startup_enabled() -> bool:
     except Exception as e:
         logger.debug(f"Could not read startup registry: {e}")
         return False
+
 
 def set_startup_enabled(enabled: bool) -> bool:
     """Enable or disable GDrive Manager startup entry in Windows registry."""

@@ -22,16 +22,30 @@ GDrive Manager is a production-quality Windows desktop application built with Py
 
 ## Phase Status Summary
 
+### Application Engineering Milestone (Phases 1 - 7)
+- **Phase 1: GUI Foundation**: Completed & Verified.
+- **Phase 2: Rclone Integration**: Completed & Verified.
+- **Phase 3: Streaming Mode**: Completed & Verified.
+- **Phase 4: Offline Mode**: Completed & Verified.
+- **Phase 5: Hybrid Mode**: Completed & Verified.
+- **Phase 6: Polish & Windows Integration**: Completed & Verified.
+- **Phase 7: Packaging & Distribution**: Completed & Verified.
+
+### Release Engineering & Open-Source Milestone (`release.md`)
+
 | Phase | Description | Status |
 |---|---|---|
-| **Environment & Scaffolding** | Setup `.venv`, requirements, folder architecture, platform inspection | **COMPLETED** |
-| **Phase 1: GUI Foundation** | Main window, sidebar, dashboard, drive cards, dialogs, dark theme | **COMPLETED** |
-| **Phase 2: Rclone Integration** | Binary bundling, OAuth 2.0 flow, credential vault, remote management | **COMPLETED** |
-| **Phase 3: Streaming Mode** | WinFsp mount lifecycle, drive letter allocation, VFS cache control | **COMPLETED** |
-| **Phase 4: Offline Mode** | File/folder transfer queue, one/two-way sync, progress tracking | **COMPLETED** |
-| **Phase 5: Hybrid Mode** | Dual streaming/offline separation, storage management | **COMPLETED** |
-| **Phase 6: Polish** | System tray, desktop notifications, crash recovery, logs viewer | **COMPLETED** |
-| **Phase 7: Distribution** | Standalone PyInstaller executable, icon generation, first-launch wizard | **COMPLETED** |
+| **Phase 1: Repository Audit** | Full codebase audit, technical debt, `REPOSITORY_AUDIT.md` | **COMPLETED** |
+| **Phase 2: Improvement Proposals** | Single-sourcing version, dependency separation, security | **COMPLETED** |
+| **Phase 3: Brand Identity & Assets** | Original vector icon, multi-res ICO, `github-banner.png`, `social-preview.png` | **COMPLETED** |
+| **Phase 4: Repository Structure** | Reorganized tests (`unit/` & `integration/`), `pyproject.toml`, `.github/`, `scripts/` | **COMPLETED** |
+| **Phase 5: Documentation** | Master `README.md`, full `docs/*.md`, `CHANGELOG`, `CONTRIBUTING`, `SECURITY` | **COMPLETED** |
+| **Phase 6: QA & Code Quality** | Ruff lint/format, Mypy, `pytest-cov` coverage $\ge 80\%$ | **IN PROGRESS** |
+| **Phase 7: GitHub Actions CI** | `.github/workflows/ci.yml` on Windows runners | Pending |
+| **Phase 8: Windows Build Automation**| `build-windows.yml` & portable `GDriveManager-Windows-x64.zip` | Pending |
+| **Phase 9: Inno Setup Installer** | `packaging/windows/installer.iss` & `GDriveManager-Setup-x64.exe` | Pending |
+| **Phase 10: Automated GitHub Releases**| `release.yml`, SemVer validation, `SHA256SUMS.txt`, auto-publish | Pending |
+| **Phase 11: Final Verification** | Full end-to-end verification and release asset validation | Pending |
 
 ---
 

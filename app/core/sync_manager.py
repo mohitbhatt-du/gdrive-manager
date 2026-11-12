@@ -2,15 +2,15 @@
 
 import os
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
+from app.core.transfer_manager import TransferManager
 from app.models.account import Account
 from app.models.transfer_job import TransferJob
 from app.services.rclone_service import RcloneService
-from app.core.transfer_manager import TransferManager
 from app.utils.logger import get_logger
 
 logger = get_logger("SyncManager")
+
 
 class SyncManager:
     """Manages offline downloads, uploads, and bidirectional synchronization with safety checks."""
@@ -19,7 +19,7 @@ class SyncManager:
         self.rclone_service = rclone_service
         self.transfer_manager = transfer_manager
         # Track active synchronization targets to prevent overlapping jobs
-        self._active_targets: Dict[str, str] = {}  # target_key -> job_id
+        self._active_targets: dict[str, str] = {}  # target_key -> job_id
 
     def _get_target_key(self, account_id: str, destination_path: str) -> str:
         """Create unique key identifying account and destination directory."""
@@ -32,8 +32,8 @@ class SyncManager:
         account: Account,
         local_path: str,
         dry_run: bool = False,
-        remote_subpath: str = ""
-    ) -> Tuple[List[str], str]:
+        remote_subpath: str = "",
+    ) -> tuple[list[str], str]:
         """Construct rclone command argument list and human-readable operation title."""
         exe = self.rclone_service.rclone_exe
         if not exe:
@@ -44,12 +44,15 @@ class SyncManager:
 
         base_flags = [
             exe,
-            "--config", str(self.rclone_service.config_path),
+            "--config",
+            str(self.rclone_service.config_path),
         ]
 
         telemetry_flags = [
-            "--stats", "1s",
-            "--stats-log-level", "NOTICE",
+            "--stats",
+            "1s",
+            "--stats-log-level",
+            "NOTICE",
             "--use-json-log",
         ]
 
@@ -95,8 +98,8 @@ class SyncManager:
         local_path: str,
         operation: str,
         dry_run: bool = False,
-        remote_subpath: str = ""
-    ) -> Tuple[bool, str, Optional[TransferJob]]:
+        remote_subpath: str = "",
+    ) -> tuple[bool, str, TransferJob | None]:
         """Validate safety rules, create transfer job, and dispatch to TransferManager."""
         # 1. Validate destination path
         if not local_path.strip():
@@ -112,7 +115,11 @@ class SyncManager:
         target_key = self._get_target_key(account.id, local_path)
         if target_key in self._active_targets:
             existing_job_id = self._active_targets[target_key]
-            return False, f"A synchronization job ({existing_job_id}) is already active for this account and destination.", None
+            return (
+                False,
+                f"A synchronization job ({existing_job_id}) is already active for this account and destination.",
+                None,
+            )
 
         # 3. Build command
         try:
@@ -136,7 +143,7 @@ class SyncManager:
             speed_bytes_per_sec=0.0,
             eta_seconds=None,
             status="Queued",
-            is_sample=False
+            is_sample=False,
         )
 
         self._active_targets[target_key] = job_id

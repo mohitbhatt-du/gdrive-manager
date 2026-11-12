@@ -1,10 +1,12 @@
 """Transfers page displaying real-time upload, download, and synchronization progress."""
 
-from typing import List, Callable, Optional
+from collections.abc import Callable
+
 import customtkinter as ctk
+
+from app.config.theme import Colors, Dimensions, Fonts
 from app.models.transfer_job import TransferJob, get_sample_transfers
-from app.config.theme import Colors, Fonts, Dimensions
-from app.ui.assets import get_symbol_icon
+
 
 class TransfersPage(ctk.CTkFrame):
     """View dedicated to managing transfer queues, active streams, and job histories."""
@@ -12,12 +14,12 @@ class TransfersPage(ctk.CTkFrame):
     def __init__(
         self,
         master,
-        jobs: Optional[List[TransferJob]] = None,
-        on_pause_job: Optional[Callable[[TransferJob], None]] = None,
-        on_resume_job: Optional[Callable[[TransferJob], None]] = None,
-        on_cancel_job: Optional[Callable[[TransferJob], None]] = None,
-        on_retry_job: Optional[Callable[[TransferJob], None]] = None,
-        **kwargs
+        jobs: list[TransferJob] | None = None,
+        on_pause_job: Callable[[TransferJob], None] | None = None,
+        on_resume_job: Callable[[TransferJob], None] | None = None,
+        on_cancel_job: Callable[[TransferJob], None] | None = None,
+        on_retry_job: Callable[[TransferJob], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.jobs = jobs if jobs is not None else get_sample_transfers()
@@ -39,10 +41,7 @@ class TransfersPage(ctk.CTkFrame):
         title_box.pack(side="left")
 
         title = ctk.CTkLabel(
-            title_box,
-            text="Transfer Queue",
-            font=Fonts.HERO,
-            text_color=Colors.TEXT_PRIMARY
+            title_box, text="Transfer Queue", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY
         )
         title.pack(anchor="w")
 
@@ -50,7 +49,7 @@ class TransfersPage(ctk.CTkFrame):
             title_box,
             text="Active downloads, uploads, and synchronization tasks with real-time transfer telemetry",
             font=Fonts.SUBTITLE,
-            text_color=Colors.TEXT_SECONDARY
+            text_color=Colors.TEXT_SECONDARY,
         )
         subtitle.pack(anchor="w", pady=(2, 0))
 
@@ -66,7 +65,7 @@ class TransfersPage(ctk.CTkFrame):
             selected_hover_color=Colors.ACCENT_HOVER,
             unselected_color=Colors.CARD_INNER,
             unselected_hover_color=Colors.CARD_HOVER,
-            height=34
+            height=34,
         )
         filter_seg.pack(side="right")
 
@@ -76,7 +75,7 @@ class TransfersPage(ctk.CTkFrame):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         container.pack(fill="both", expand=True, padx=28, pady=(0, 20))
 
@@ -88,7 +87,7 @@ class TransfersPage(ctk.CTkFrame):
     def _on_filter_changed(self, _=None):
         self.render_jobs()
 
-    def update_jobs(self, jobs: List[TransferJob]):
+    def update_jobs(self, jobs: list[TransferJob]):
         """Update job list and refresh display."""
         self.jobs = jobs
         self.render_jobs()
@@ -114,7 +113,7 @@ class TransfersPage(ctk.CTkFrame):
                 self.jobs_scroll,
                 text="No transfer jobs match the selected filter.",
                 font=Fonts.SUBTITLE,
-                text_color=Colors.TEXT_MUTED
+                text_color=Colors.TEXT_MUTED,
             )
             empty_lbl.pack(pady=40)
             return
@@ -128,7 +127,7 @@ class TransfersPage(ctk.CTkFrame):
             fg_color=Colors.CARD_INNER,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         card.pack(fill="x", pady=6)
 
@@ -140,10 +139,7 @@ class TransfersPage(ctk.CTkFrame):
         top_row.pack(fill="x", pady=(0, 6))
 
         name_lbl = ctk.CTkLabel(
-            top_row,
-            text=job.item_name,
-            font=Fonts.BODY_BOLD,
-            text_color=Colors.TEXT_PRIMARY
+            top_row, text=job.item_name, font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
         )
         name_lbl.pack(side="left")
 
@@ -154,7 +150,7 @@ class TransfersPage(ctk.CTkFrame):
             "Paused": Colors.STATUS_WARNING,
             "Failed": Colors.STATUS_ERROR,
             "Cancelled": Colors.STATUS_MUTED,
-            "Queued": Colors.TEXT_SECONDARY
+            "Queued": Colors.TEXT_SECONDARY,
         }
         st_color = st_colors.get(job.status, Colors.TEXT_SECONDARY)
 
@@ -165,7 +161,7 @@ class TransfersPage(ctk.CTkFrame):
             text_color=st_color,
             fg_color=Colors.INPUT_BG,
             corner_radius=6,
-            height=22
+            height=22,
         )
         status_pill.pack(side="right")
 
@@ -176,17 +172,13 @@ class TransfersPage(ctk.CTkFrame):
             text_color=Colors.ACCENT_LIGHT,
             fg_color=Colors.BG_SIDEBAR_ACTIVE,
             corner_radius=6,
-            height=22
+            height=22,
         )
         op_pill.pack(side="right", padx=(0, 8))
 
         # Progress bar
         prog = ctk.CTkProgressBar(
-            inner,
-            height=6,
-            corner_radius=3,
-            fg_color=Colors.PROGRESS_BG,
-            progress_color=st_color
+            inner, height=6, corner_radius=3, fg_color=Colors.PROGRESS_BG, progress_color=st_color
         )
         prog.set(job.progress_percentage / 100.0)
         prog.pack(fill="x", pady=(4, 6))
@@ -205,7 +197,7 @@ class TransfersPage(ctk.CTkFrame):
             bot_row,
             text=telemetry_txt,
             font=Fonts.CAPTION,
-            text_color=Colors.STATUS_ERROR if job.status == "Failed" else Colors.TEXT_SECONDARY
+            text_color=Colors.STATUS_ERROR if job.status == "Failed" else Colors.TEXT_SECONDARY,
         )
         info_lbl.pack(side="left")
 
@@ -224,7 +216,7 @@ class TransfersPage(ctk.CTkFrame):
                 border_color=Colors.CARD_BORDER,
                 width=54,
                 height=26,
-                command=lambda j=job: self._handle_pause(j)
+                command=lambda j=job: self._handle_pause(j),
             )
             p_btn.pack(side="left", padx=(0, 6))
 
@@ -238,7 +230,7 @@ class TransfersPage(ctk.CTkFrame):
                 border_color=Colors.CARD_BORDER,
                 width=54,
                 height=26,
-                command=lambda j=job: self._handle_cancel(j)
+                command=lambda j=job: self._handle_cancel(j),
             )
             c_btn.pack(side="left")
 
@@ -251,7 +243,7 @@ class TransfersPage(ctk.CTkFrame):
                 hover_color=Colors.ACCENT_HOVER,
                 width=60,
                 height=26,
-                command=lambda j=job: self._handle_resume(j)
+                command=lambda j=job: self._handle_resume(j),
             )
             r_btn.pack(side="left", padx=(0, 6))
 
@@ -265,7 +257,7 @@ class TransfersPage(ctk.CTkFrame):
                 border_color=Colors.CARD_BORDER,
                 width=54,
                 height=26,
-                command=lambda j=job: self._handle_cancel(j)
+                command=lambda j=job: self._handle_cancel(j),
             )
             c_btn.pack(side="left")
 
@@ -278,7 +270,7 @@ class TransfersPage(ctk.CTkFrame):
                 hover_color=Colors.ACCENT_HOVER,
                 width=60,
                 height=26,
-                command=lambda j=job: self._handle_retry(j)
+                command=lambda j=job: self._handle_retry(j),
             )
             ret_btn.pack(side="left")
 

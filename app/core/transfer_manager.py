@@ -3,7 +3,7 @@
 import json
 import subprocess
 import threading
-from typing import Dict, List, Optional, Callable
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 
 from app.models.transfer_job import TransferJob, get_sample_transfers
@@ -11,17 +11,18 @@ from app.utils.logger import get_logger
 
 logger = get_logger("TransferManager")
 
+
 class TransferManager:
     """Manages background transfer subprocesses, telemetry parsing, and lifecycle controls."""
 
     def __init__(self, max_concurrent: int = 2):
         self.max_concurrent = max_concurrent
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent, thread_name_prefix="TransferWorker")
-        self.jobs: List[TransferJob] = []
-        self._active_processes: Dict[str, subprocess.Popen] = {}
-        self._active_commands: Dict[str, List[str]] = {}
+        self.jobs: list[TransferJob] = []
+        self._active_processes: dict[str, subprocess.Popen] = {}
+        self._active_commands: dict[str, list[str]] = {}
         self._lock = threading.Lock()
-        self._callbacks: List[Callable[[TransferJob], None]] = []
+        self._callbacks: list[Callable[[TransferJob], None]] = []
 
         # Start with sample transfers for UI preview if no jobs exist
         self._load_initial_jobs()
@@ -40,12 +41,12 @@ class TransferManager:
             except Exception as e:
                 logger.error(f"Error in transfer update callback: {e}")
 
-    def get_jobs(self) -> List[TransferJob]:
+    def get_jobs(self) -> list[TransferJob]:
         """Return all transfer jobs."""
         with self._lock:
             return list(self.jobs)
 
-    def add_job(self, job: TransferJob, cmd_args: List[str]):
+    def add_job(self, job: TransferJob, cmd_args: list[str]):
         """Submit and start a new transfer job with its associated rclone command."""
         with self._lock:
             # If current jobs are all samples, clear samples
@@ -58,7 +59,7 @@ class TransferManager:
         self.executor.submit(self._run_job_process, job, cmd_args)
         self._notify(job)
 
-    def _run_job_process(self, job: TransferJob, cmd_args: List[str]):
+    def _run_job_process(self, job: TransferJob, cmd_args: list[str]):
         """Execute rclone subprocess and parse live JSON telemetry on stderr."""
         logger.info(f"Starting transfer job {job.id} ({job.operation_type}): {' '.join(cmd_args)}")
         job.status = "Running"
@@ -67,18 +68,14 @@ class TransferManager:
         try:
             # Execute with --use-json-log --stats 1s
             process = subprocess.Popen(
-                cmd_args,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True,
-                bufsize=1
+                cmd_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1
             )
 
             with self._lock:
                 self._active_processes[job.id] = process
 
             # Read stderr line-by-line for live JSON stats
-            for line in iter(process.stderr.readline, ''):
+            for line in iter(process.stderr.readline, ""):
                 line = line.strip()
                 if not line:
                     continue

@@ -1,11 +1,14 @@
 """Main dashboard view displaying account cards, statistics, and quick actions."""
 
-from typing import List, Callable, Optional
+from collections.abc import Callable
+
 import customtkinter as ctk
+
+from app.config.theme import Colors, Dimensions, Fonts
 from app.models.account import Account
-from app.config.theme import Colors, Fonts, Dimensions
+from app.ui.assets import get_drive_hardware_icon
 from app.ui.drive_card import DriveCard
-from app.ui.assets import get_symbol_icon, get_drive_hardware_icon, get_gdrive_icon
+
 
 class Dashboard(ctk.CTkFrame):
     """Dashboard view showcasing connected drives, metrics, and management actions."""
@@ -13,12 +16,12 @@ class Dashboard(ctk.CTkFrame):
     def __init__(
         self,
         master,
-        accounts: List[Account],
+        accounts: list[Account],
         on_add_drive: Callable[[], None],
-        on_open_drive: Optional[Callable[[Account], None]] = None,
-        on_toggle_mount: Optional[Callable[[Account], None]] = None,
-        on_settings: Optional[Callable[[Account], None]] = None,
-        **kwargs
+        on_open_drive: Callable[[Account], None] | None = None,
+        on_toggle_mount: Callable[[Account], None] | None = None,
+        on_settings: Callable[[Account], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.accounts = accounts
@@ -27,7 +30,7 @@ class Dashboard(ctk.CTkFrame):
         self.on_toggle_mount = on_toggle_mount
         self.on_settings = on_settings
 
-        self.cards: List[DriveCard] = []
+        self.cards: list[DriveCard] = []
 
         self._build_ui()
 
@@ -40,19 +43,14 @@ class Dashboard(ctk.CTkFrame):
         text_box = ctk.CTkFrame(header_frame, fg_color="transparent")
         text_box.pack(side="left")
 
-        title_lbl = ctk.CTkLabel(
-            text_box,
-            text="My Drives",
-            font=Fonts.HERO,
-            text_color=Colors.TEXT_PRIMARY
-        )
+        title_lbl = ctk.CTkLabel(text_box, text="My Drives", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY)
         title_lbl.pack(anchor="w")
 
         subtitle_lbl = ctk.CTkLabel(
             text_box,
             text="Your Google Drive(s) mounted as Windows drives with streaming and offline sync",
             font=Fonts.SUBTITLE,
-            text_color=Colors.TEXT_SECONDARY
+            text_color=Colors.TEXT_SECONDARY,
         )
         subtitle_lbl.pack(anchor="w", pady=(2, 0))
 
@@ -65,7 +63,7 @@ class Dashboard(ctk.CTkFrame):
             hover_color=Colors.ACCENT_HOVER,
             corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
             height=38,
-            command=self.on_add_drive
+            command=self.on_add_drive,
         )
         add_btn.pack(side="right")
 
@@ -77,7 +75,7 @@ class Dashboard(ctk.CTkFrame):
             self,
             fg_color="transparent",
             scrollbar_button_color=Colors.CARD_BORDER,
-            scrollbar_button_hover_color=Colors.ACCENT_PRIMARY
+            scrollbar_button_hover_color=Colors.ACCENT_PRIMARY,
         )
         self.scroll_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
         self.scroll_frame.grid_columnconfigure((0, 1), weight=1, uniform="card_col")
@@ -110,7 +108,7 @@ class Dashboard(ctk.CTkFrame):
                 corner_radius=Dimensions.CARD_CORNER_RADIUS,
                 border_width=1,
                 border_color=Colors.CARD_BORDER,
-                height=52
+                height=52,
             )
             pill.pack(side="left", padx=(0, 12), fill="x", expand=True)
 
@@ -118,19 +116,11 @@ class Dashboard(ctk.CTkFrame):
             pill_box.pack(padx=14, pady=8, fill="x")
 
             t_lbl = ctk.CTkLabel(
-                pill_box,
-                text=title.upper(),
-                font=Fonts.CAPTION,
-                text_color=Colors.TEXT_MUTED
+                pill_box, text=title.upper(), font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED
             )
             t_lbl.pack(anchor="w")
 
-            v_lbl = ctk.CTkLabel(
-                pill_box,
-                text=val,
-                font=Fonts.BODY_BOLD,
-                text_color=accent
-            )
+            v_lbl = ctk.CTkLabel(pill_box, text=val, font=Fonts.BODY_BOLD, text_color=accent)
             v_lbl.pack(anchor="w")
 
     def render_cards(self):
@@ -153,7 +143,7 @@ class Dashboard(ctk.CTkFrame):
                 account=account,
                 on_open_drive=self.on_open_drive,
                 on_toggle_mount=self.on_toggle_mount,
-                on_settings=self.on_settings
+                on_settings=self.on_settings,
             )
             card.grid(row=row, column=col, padx=8, pady=8, sticky="nsew")
             self.cards.append(card)
@@ -165,22 +155,18 @@ class Dashboard(ctk.CTkFrame):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         empty_box.pack(fill="both", expand=True, padx=40, pady=40)
 
-        icon_lbl = ctk.CTkLabel(
-            empty_box,
-            text="",
-            image=get_drive_hardware_icon(64, "#8B5CF6")
-        )
+        icon_lbl = ctk.CTkLabel(empty_box, text="", image=get_drive_hardware_icon(64, "#8B5CF6"))
         icon_lbl.pack(pady=(40, 12))
 
         msg_lbl = ctk.CTkLabel(
             empty_box,
             text="No Google Drive Accounts Connected",
             font=Fonts.CARD_TITLE,
-            text_color=Colors.TEXT_PRIMARY
+            text_color=Colors.TEXT_PRIMARY,
         )
         msg_lbl.pack(pady=(0, 6))
 
@@ -189,7 +175,7 @@ class Dashboard(ctk.CTkFrame):
             text="Connect your first Google account to mount it as a Windows drive letter\nand enable seamless streaming or local offline synchronization.",
             font=Fonts.SUBTITLE,
             text_color=Colors.TEXT_SECONDARY,
-            justify="center"
+            justify="center",
         )
         sub_lbl.pack(pady=(0, 20))
 
@@ -201,11 +187,11 @@ class Dashboard(ctk.CTkFrame):
             hover_color=Colors.ACCENT_HOVER,
             corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
             height=40,
-            command=self.on_add_drive
+            command=self.on_add_drive,
         )
         add_btn.pack(pady=(0, 40))
 
-    def update_accounts(self, accounts: List[Account]):
+    def update_accounts(self, accounts: list[Account]):
         """Update accounts list and redraw cards."""
         self.accounts = accounts
         self.render_cards()

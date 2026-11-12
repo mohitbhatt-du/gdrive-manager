@@ -1,17 +1,17 @@
 """Google OAuth 2.0 authentication manager coordinating rclone remote creation."""
 
-import threading
 import subprocess
-from typing import Callable, Optional, Dict, Any
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 
-from app.services.rclone_service import RcloneService
-from app.services.credential_service import CredentialService
 from app.config.account_repository import AccountRepository
 from app.models.account import Account
+from app.services.credential_service import CredentialService
+from app.services.rclone_service import RcloneService
 from app.utils.logger import get_logger
 
 logger = get_logger("AuthManager")
+
 
 class AuthManager:
     """Handles Google OAuth authentication lifecycle, remote creation, and token vaulting."""
@@ -20,7 +20,7 @@ class AuthManager:
         self,
         rclone_service: RcloneService,
         account_repo: AccountRepository,
-        credential_service: CredentialService
+        credential_service: CredentialService,
     ):
         self.rclone_service = rclone_service
         self.account_repo = account_repo
@@ -37,7 +37,7 @@ class AuthManager:
         cache_size: str,
         on_status_update: Callable[[str], None],
         on_success: Callable[[Account], None],
-        on_error: Callable[[str], None]
+        on_error: Callable[[str], None],
     ):
         """Execute Google OAuth flow asynchronously in background thread."""
         self.executor.submit(
@@ -50,7 +50,7 @@ class AuthManager:
             cache_size,
             on_status_update,
             on_success,
-            on_error
+            on_error,
         )
 
     def _run_auth_flow(
@@ -63,7 +63,7 @@ class AuthManager:
         cache_size: str,
         on_status_update: Callable[[str], None],
         on_success: Callable[[Account], None],
-        on_error: Callable[[str], None]
+        on_error: Callable[[str], None],
     ):
         try:
             exe = self.rclone_service.rclone_exe
@@ -88,19 +88,17 @@ class AuthManager:
             # Run rclone config create <remote_name> drive scope drive
             cmd = [
                 exe,
-                "--config", str(self.rclone_service.config_path),
-                "config", "create",
+                "--config",
+                str(self.rclone_service.config_path),
+                "config",
+                "create",
                 remote_name,
                 "drive",
-                "scope", "drive"
+                "scope",
+                "drive",
             ]
 
-            process = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
+            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
             on_status_update("Waiting for Google authorization in browser...")
             stdout, stderr = process.communicate(timeout=180)
@@ -120,10 +118,9 @@ class AuthManager:
             total_bytes = quota.get("total", 15 * 1024 * 1024 * 1024)
 
             # Secure tokens in Windows Credential Manager
-            self.credential_service.store_token(account_id, {
-                "remote_name": remote_name,
-                "config_path": str(self.rclone_service.config_path)
-            })
+            self.credential_service.store_token(
+                account_id, {"remote_name": remote_name, "config_path": str(self.rclone_service.config_path)}
+            )
 
             # Create Account model
             new_account = Account(
@@ -140,7 +137,7 @@ class AuthManager:
                 total_storage_bytes=total_bytes,
                 is_mounted=False,
                 status="Connected",
-                is_sample=False
+                is_sample=False,
             )
 
             # Persist to repository

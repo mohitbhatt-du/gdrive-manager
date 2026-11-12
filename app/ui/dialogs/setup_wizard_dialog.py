@@ -1,19 +1,20 @@
 """First-Launch Setup and Onboarding Wizard Dialog."""
 
-import os
 import subprocess
 import threading
-from typing import Callable, Optional
+from collections.abc import Callable
 from tkinter import messagebox
+
 import customtkinter as ctk
 
-from app.config.theme import Colors, Fonts, Dimensions
+from app.config.theme import Colors, Dimensions, Fonts
 from app.ui.assets import get_gdrive_icon, get_symbol_icon
-from app.utils.platform_checks import is_rclone_installed, get_rclone_version, is_winfsp_installed
-from app.utils.onboarding import set_onboarding_completed
 from app.utils.logger import get_logger
+from app.utils.onboarding import set_onboarding_completed
+from app.utils.platform_checks import get_rclone_version, is_rclone_installed, is_winfsp_installed
 
 logger = get_logger("SetupWizardDialog")
+
 
 class SetupWizardDialog(ctk.CTkToplevel):
     """First-launch onboarding modal guiding users through drivers and account setup."""
@@ -21,8 +22,8 @@ class SetupWizardDialog(ctk.CTkToplevel):
     def __init__(
         self,
         parent,
-        on_connect_drive: Optional[Callable[[], None]] = None,
-        on_finish: Optional[Callable[[], None]] = None
+        on_connect_drive: Callable[[], None] | None = None,
+        on_finish: Callable[[], None] | None = None,
     ):
         super().__init__(parent)
         self.on_connect_drive = on_connect_drive
@@ -64,10 +65,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
         logo.pack(pady=(0, 8))
 
         title = ctk.CTkLabel(
-            header,
-            text="Welcome to GDrive Manager",
-            font=Fonts.HERO,
-            text_color=Colors.TEXT_PRIMARY
+            header, text="Welcome to GDrive Manager", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY
         )
         title.pack()
 
@@ -75,7 +73,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
             header,
             text="Connect, stream, and sync multiple Google Drive accounts as Windows drives",
             font=Fonts.SUBTITLE,
-            text_color=Colors.TEXT_SECONDARY
+            text_color=Colors.TEXT_SECONDARY,
         )
         subtitle.pack(pady=(4, 0))
 
@@ -85,7 +83,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         chk_card.pack(fill="x", pady=(0, 16))
 
@@ -96,7 +94,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
             chk_inner,
             text="Pre-Flight System Verification",
             font=Fonts.CARD_TITLE,
-            text_color=Colors.TEXT_PRIMARY
+            text_color=Colors.TEXT_PRIMARY,
         )
         card_title.pack(anchor="w", pady=(0, 12))
 
@@ -115,7 +113,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
             fg_color=Colors.CARD_INNER,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         feat_card.pack(fill="x", pady=(0, 16))
 
@@ -128,7 +126,14 @@ class SetupWizardDialog(ctk.CTkToplevel):
             "🔒 Zero Token Leakage: OAuth credentials secured via Windows Credential Manager.",
         ]
         for it in items:
-            lbl = ctk.CTkLabel(feat_inner, text=it, font=Fonts.CAPTION, text_color=Colors.TEXT_SECONDARY, justify="left", wraplength=520)
+            lbl = ctk.CTkLabel(
+                feat_inner,
+                text=it,
+                font=Fonts.CAPTION,
+                text_color=Colors.TEXT_SECONDARY,
+                justify="left",
+                wraplength=520,
+            )
             lbl.pack(anchor="w", pady=2)
 
         # Checkbox
@@ -137,7 +142,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
             text="Do not show this onboarding wizard again on launch",
             variable=self.dont_show_again,
             font=Fonts.BODY,
-            fg_color=Colors.ACCENT_PRIMARY
+            fg_color=Colors.ACCENT_PRIMARY,
         )
         chk.pack(anchor="w", pady=(0, 16))
 
@@ -155,7 +160,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
             border_color=Colors.CARD_BORDER,
             text_color=Colors.TEXT_SECONDARY,
             height=40,
-            command=self._on_explore_demo
+            command=self._on_explore_demo,
         )
         demo_btn.pack(side="left", padx=(0, 10))
 
@@ -168,7 +173,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
             fg_color=Colors.ACCENT_PRIMARY,
             hover_color=Colors.ACCENT_HOVER,
             height=40,
-            command=self._on_connect_account
+            command=self._on_connect_account,
         )
         add_btn.pack(side="right", fill="x", expand=True)
 
@@ -185,10 +190,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
         icon_lbl.pack(side="left", padx=(0, 8))
 
         text_lbl = ctk.CTkLabel(
-            row,
-            text=f"Rclone Cloud Engine: {ver}",
-            font=Fonts.BODY,
-            text_color=Colors.TEXT_PRIMARY
+            row, text=f"Rclone Cloud Engine: {ver}", font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY
         )
         text_lbl.pack(side="left")
 
@@ -205,16 +207,17 @@ class SetupWizardDialog(ctk.CTkToplevel):
         color = Colors.STATUS_MOUNTED if has_fsp else Colors.STATUS_WARNING
         symbol = "✓" if has_fsp else "⚠️"
 
-        icon_lbl = ctk.CTkLabel(self.winfsp_frame, text=symbol, font=Fonts.BODY_BOLD, text_color=color, width=20)
+        icon_lbl = ctk.CTkLabel(
+            self.winfsp_frame, text=symbol, font=Fonts.BODY_BOLD, text_color=color, width=20
+        )
         icon_lbl.pack(side="left", padx=(0, 8))
 
-        desc = "WinFsp Virtual Filesystem Driver: Ready" if has_fsp else "WinFsp Virtual Filesystem Driver: Not Installed"
-        text_lbl = ctk.CTkLabel(
-            self.winfsp_frame,
-            text=desc,
-            font=Fonts.BODY,
-            text_color=Colors.TEXT_PRIMARY
+        desc = (
+            "WinFsp Virtual Filesystem Driver: Ready"
+            if has_fsp
+            else "WinFsp Virtual Filesystem Driver: Not Installed"
         )
+        text_lbl = ctk.CTkLabel(self.winfsp_frame, text=desc, font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY)
         text_lbl.pack(side="left")
 
         if not has_fsp:
@@ -228,7 +231,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
                 border_color=Colors.CARD_BORDER,
                 height=26,
                 width=110,
-                command=self._install_winfsp
+                command=self._install_winfsp,
             )
             install_btn.pack(side="right", padx=(4, 0))
 
@@ -242,7 +245,7 @@ class SetupWizardDialog(ctk.CTkToplevel):
                 border_color=Colors.CARD_BORDER,
                 height=26,
                 width=75,
-                command=self._refresh_winfsp_ui
+                command=self._refresh_winfsp_ui,
             )
             refresh_btn.pack(side="right")
 
@@ -250,14 +253,16 @@ class SetupWizardDialog(ctk.CTkToplevel):
         row = ctk.CTkFrame(parent, fg_color="transparent")
         row.pack(fill="x")
 
-        icon_lbl = ctk.CTkLabel(row, text="✓", font=Fonts.BODY_BOLD, text_color=Colors.STATUS_MOUNTED, width=20)
+        icon_lbl = ctk.CTkLabel(
+            row, text="✓", font=Fonts.BODY_BOLD, text_color=Colors.STATUS_MOUNTED, width=20
+        )
         icon_lbl.pack(side="left", padx=(0, 8))
 
         text_lbl = ctk.CTkLabel(
             row,
             text="Windows Credential Manager: Integrated & Active",
             font=Fonts.BODY,
-            text_color=Colors.TEXT_PRIMARY
+            text_color=Colors.TEXT_PRIMARY,
         )
         text_lbl.pack(side="left")
 
@@ -265,16 +270,22 @@ class SetupWizardDialog(ctk.CTkToplevel):
         def _run():
             try:
                 subprocess.Popen(
-                    ["powershell", "-NoProfile", "-Command", "Start-Process winget -ArgumentList 'install WinFsp.WinFsp' -Verb RunAs"],
-                    creationflags=subprocess.CREATE_NO_WINDOW
+                    [
+                        "powershell",
+                        "-NoProfile",
+                        "-Command",
+                        "Start-Process winget -ArgumentList 'install WinFsp.WinFsp' -Verb RunAs",
+                    ],
+                    creationflags=subprocess.CREATE_NO_WINDOW,
                 )
             except Exception as e:
                 logger.error(f"Error launching winget installer: {e}")
+
         threading.Thread(target=_run, daemon=True).start()
         messagebox.showinfo(
             "Installing WinFsp",
             "An administrator winget installer window has been opened.\n"
-            "Once installation completes, click 'Re-check' to verify."
+            "Once installation completes, click 'Re-check' to verify.",
         )
 
     def _save_preferences_and_close(self):

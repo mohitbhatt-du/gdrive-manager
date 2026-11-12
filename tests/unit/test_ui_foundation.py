@@ -2,7 +2,6 @@
 
 import sys
 from pathlib import Path
-import pytest
 
 # Ensure project root is in sys.path
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -10,14 +9,13 @@ if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
 from app.models.account import Account, get_sample_accounts
-from app.models.transfer_job import TransferJob, get_sample_transfers
+from app.models.transfer_job import TransferJob
+from app.ui.assets import get_drive_hardware_icon, get_gdrive_icon, get_symbol_icon
 from app.utils.platform_checks import (
-    get_occupied_drive_letters,
     get_available_drive_letters,
-    is_rclone_installed,
-    is_winfsp_installed,
+    get_occupied_drive_letters,
 )
-from app.ui.assets import get_gdrive_icon, get_drive_hardware_icon, get_symbol_icon
+
 
 def test_account_model():
     """Test Account model properties, calculations, and dict conversion."""
@@ -45,6 +43,7 @@ def test_account_model():
     assert restored.display_name == "Test Account"
     assert restored.storage_percentage == 50.0
 
+
 def test_account_hybrid_mode():
     """Test operating mode label for hybrid streaming and offline."""
     acc = Account(
@@ -57,6 +56,7 @@ def test_account_hybrid_mode():
     )
     assert acc.operating_mode == "Streaming + Offline"
 
+
 def test_sample_accounts():
     """Verify sample accounts structure and flags."""
     samples = get_sample_accounts()
@@ -64,6 +64,7 @@ def test_sample_accounts():
     for s in samples:
         assert s.is_sample is True
         assert s.drive_letter.endswith(":")
+
 
 def test_transfer_job_model():
     """Test TransferJob properties and calculations."""
@@ -76,12 +77,13 @@ def test_transfer_job_model():
         transferred_bytes=250,
         speed_bytes_per_sec=50,
         eta_seconds=15,
-        status="Running"
+        status="Running",
     )
     assert job.progress_percentage == 25.0
     assert "250.0 B" in job.formatted_transferred
     assert "1000.0 B" in job.formatted_total
     assert job.formatted_eta == "00m 15s"
+
 
 def test_platform_drive_letters():
     """Verify drive letters format."""
@@ -96,6 +98,7 @@ def test_platform_drive_letters():
     # Available should not overlap with occupied
     assert set(available).isdisjoint(set(occupied))
 
+
 def test_asset_generation():
     """Verify that all Pillow vector icons generate without error."""
     gdrive_ico = get_gdrive_icon(32)
@@ -108,6 +111,7 @@ def test_asset_generation():
     for s in symbols:
         ico = get_symbol_icon(s, 20)
         assert ico is not None
+
 
 def test_main_window_instantiation(main_app):
     """Verify that MainWindow and its child pages instantiate properly."""
@@ -126,4 +130,3 @@ def test_main_window_instantiation(main_app):
     for p in ["streaming", "offline", "transfers", "logs", "settings", "about", "drives"]:
         app.show_page(p)
         assert app.current_page_id == p
-

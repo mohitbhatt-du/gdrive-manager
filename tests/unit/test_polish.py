@@ -1,15 +1,11 @@
 """Unit tests for Phase 6 polish: startup registry, desktop notifications, logs page, and system tray."""
 
-import os
 import winreg
-from pathlib import Path
 from unittest.mock import MagicMock, patch
-import pytest
 
-from app.utils.startup import is_startup_enabled, set_startup_enabled, get_launch_command
-from app.utils.notifications import send_notification
 from app.ui.tray import SystemTrayManager
-from app.ui.logs_page import LogsPage
+from app.utils.notifications import send_notification
+from app.utils.startup import get_launch_command, is_startup_enabled, set_startup_enabled
 
 
 def test_get_launch_command():
@@ -58,6 +54,7 @@ def test_send_notification_dispatch():
         send_notification("Test Title", "Test Message")
         # Give daemon thread a brief moment to execute
         import time
+
         time.sleep(0.1)
         mock_run.assert_called()
         cmd = mock_run.call_args[0][0]
@@ -72,10 +69,7 @@ def test_system_tray_manager_image_and_menu():
     on_quit = MagicMock()
 
     tray = SystemTrayManager(
-        on_show_window=on_show,
-        on_mount_all=on_mount,
-        on_unmount_all=on_unmount,
-        on_quit=on_quit
+        on_show_window=on_show, on_mount_all=on_mount, on_unmount_all=on_unmount, on_quit=on_quit
     )
 
     img = tray._create_tray_image()
@@ -95,7 +89,7 @@ def test_logs_page_filtering(main_app, tmp_path):
         "2026-01-01 [DEBUG] Verbose detail\n"
         "2026-01-01 [WARNING] Disk low\n"
         "2026-01-01 [ERROR] Failed to mount\n",
-        encoding="utf-8"
+        encoding="utf-8",
     )
 
     logs_page.log_file = test_log
@@ -117,6 +111,7 @@ def test_logs_page_filtering(main_app, tmp_path):
 
 def test_onboarding_state(tmp_path, monkeypatch):
     from app.utils import onboarding
+
     fake_marker = tmp_path / ".onboarding_completed"
     monkeypatch.setattr(onboarding, "_get_marker_path", lambda: fake_marker)
 
@@ -129,15 +124,12 @@ def test_onboarding_state(tmp_path, monkeypatch):
 
 def test_setup_wizard_dialog(main_app):
     from app.ui.dialogs.setup_wizard_dialog import SetupWizardDialog
+
     connect_called = []
-    dlg = SetupWizardDialog(
-        main_app,
-        on_connect_drive=lambda: connect_called.append(True)
-    )
+    dlg = SetupWizardDialog(main_app, on_connect_drive=lambda: connect_called.append(True))
     main_app.update_idletasks()
     assert dlg.winfo_exists()
 
     dlg._on_connect_account()
     main_app.update_idletasks()
     assert len(connect_called) == 1
-

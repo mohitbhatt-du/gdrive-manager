@@ -1,11 +1,14 @@
 """Offline Mode and synchronization management view."""
 
-from typing import List, Callable, Optional
+from collections.abc import Callable
 from tkinter import filedialog
+
 import customtkinter as ctk
+
+from app.config.theme import Colors, Dimensions, Fonts
 from app.models.account import Account
-from app.config.theme import Colors, Fonts, Dimensions
 from app.ui.assets import get_symbol_icon
+
 
 class OfflinePage(ctk.CTkFrame):
     """View dedicated to offline local folders, selective sync, and two-way bisync."""
@@ -13,16 +16,18 @@ class OfflinePage(ctk.CTkFrame):
     def __init__(
         self,
         master,
-        accounts: List[Account],
-        on_start_sync: Optional[Callable[[Account, str, str, bool], None]] = None,
-        **kwargs
+        accounts: list[Account],
+        on_start_sync: Callable[[Account, str, str, bool], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.accounts = accounts
         self.on_start_sync = on_start_sync
 
-        self.selected_account: Optional[Account] = accounts[0] if accounts else None
-        self.local_path_var = ctk.StringVar(value=self.selected_account.offline_path if self.selected_account else "")
+        self.selected_account: Account | None = accounts[0] if accounts else None
+        self.local_path_var = ctk.StringVar(
+            value=self.selected_account.offline_path if self.selected_account else ""
+        )
         self.sync_type_var = ctk.StringVar(value="Cloud -> Local (Download/Copy)")
         self.dry_run_var = ctk.BooleanVar(value=True)
 
@@ -34,10 +39,7 @@ class OfflinePage(ctk.CTkFrame):
         header.pack(fill="x", padx=28, pady=(24, 16))
 
         title = ctk.CTkLabel(
-            header,
-            text="Offline Storage & Synchronization",
-            font=Fonts.HERO,
-            text_color=Colors.TEXT_PRIMARY
+            header, text="Offline Storage & Synchronization", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY
         )
         title.pack(anchor="w")
 
@@ -45,7 +47,7 @@ class OfflinePage(ctk.CTkFrame):
             header,
             text="Keep full local copies of your files, configure one-way mirrors, or maintain bidirectional bi-sync",
             font=Fonts.SUBTITLE,
-            text_color=Colors.TEXT_SECONDARY
+            text_color=Colors.TEXT_SECONDARY,
         )
         subtitle.pack(anchor="w", pady=(2, 0))
 
@@ -55,7 +57,7 @@ class OfflinePage(ctk.CTkFrame):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         form_card.pack(fill="x", padx=28, pady=(0, 20))
 
@@ -63,7 +65,9 @@ class OfflinePage(ctk.CTkFrame):
         card_inner.pack(fill="x", padx=20, pady=20)
 
         # 1. Target Account Selector
-        acc_lbl = ctk.CTkLabel(card_inner, text="Select Google Account:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        acc_lbl = ctk.CTkLabel(
+            card_inner, text="Select Google Account:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         acc_lbl.pack(anchor="w", pady=(0, 4))
 
         account_names = [f"{a.display_name} ({a.email})" for a in self.accounts] or ["No Accounts Available"]
@@ -76,12 +80,17 @@ class OfflinePage(ctk.CTkFrame):
             button_color=Colors.ACCENT_PRIMARY,
             button_hover_color=Colors.ACCENT_HOVER,
             dropdown_fg_color=Colors.CARD_BG,
-            height=36
+            height=36,
         )
         self.account_menu.pack(fill="x", pady=(0, 16))
 
         # 2. Local Storage Directory
-        dir_lbl = ctk.CTkLabel(card_inner, text="Local Destination Directory:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        dir_lbl = ctk.CTkLabel(
+            card_inner,
+            text="Local Destination Directory:",
+            font=Fonts.BODY_BOLD,
+            text_color=Colors.TEXT_PRIMARY,
+        )
         dir_lbl.pack(anchor="w", pady=(0, 4))
 
         path_row = ctk.CTkFrame(card_inner, fg_color="transparent")
@@ -93,7 +102,7 @@ class OfflinePage(ctk.CTkFrame):
             font=Fonts.BODY,
             fg_color=Colors.INPUT_BG,
             border_color=Colors.INPUT_BORDER,
-            height=36
+            height=36,
         )
         self.path_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
 
@@ -106,12 +115,14 @@ class OfflinePage(ctk.CTkFrame):
             border_width=1,
             border_color=Colors.CARD_BORDER,
             height=36,
-            command=self._browse_directory
+            command=self._browse_directory,
         )
         browse_btn.pack(side="right")
 
         # 3. Synchronization Operation Type
-        sync_lbl = ctk.CTkLabel(card_inner, text="Operation Mode:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY)
+        sync_lbl = ctk.CTkLabel(
+            card_inner, text="Operation Mode:", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY
+        )
         sync_lbl.pack(anchor="w", pady=(0, 4))
 
         sync_modes = [
@@ -130,7 +141,7 @@ class OfflinePage(ctk.CTkFrame):
             button_color=Colors.ACCENT_PRIMARY,
             button_hover_color=Colors.ACCENT_HOVER,
             dropdown_fg_color=Colors.CARD_BG,
-            height=36
+            height=36,
         )
         self.sync_menu.pack(fill="x", pady=(0, 16))
 
@@ -141,7 +152,7 @@ class OfflinePage(ctk.CTkFrame):
             variable=self.dry_run_var,
             font=Fonts.BODY,
             fg_color=Colors.ACCENT_PRIMARY,
-            hover_color=Colors.ACCENT_HOVER
+            hover_color=Colors.ACCENT_HOVER,
         )
         dry_chk.pack(anchor="w", pady=(0, 20))
 
@@ -156,7 +167,7 @@ class OfflinePage(ctk.CTkFrame):
             hover_color=Colors.ACCENT_HOVER,
             corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
             height=40,
-            command=self._handle_start
+            command=self._handle_start,
         )
         start_btn.pack(anchor="w")
 
@@ -179,5 +190,5 @@ class OfflinePage(ctk.CTkFrame):
                 self.selected_account,
                 self.local_path_var.get(),
                 self.sync_type_var.get(),
-                self.dry_run_var.get()
+                self.dry_run_var.get(),
             )

@@ -2,20 +2,23 @@
 
 import sys
 from pathlib import Path
+
 import pytest
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 if str(BASE_DIR) not in sys.path:
     sys.path.insert(0, str(BASE_DIR))
 
+from app.core.storage_manager import StorageManager
 from app.models.account import Account
 from app.services.rclone_service import RcloneService
-from app.core.storage_manager import StorageManager, StorageBreakdown
+
 
 @pytest.fixture
 def storage_mgr():
     svc = RcloneService()
     return StorageManager(rclone_service=svc)
+
 
 def test_storage_breakdown_metrics(storage_mgr, tmp_path):
     """Test breakdown correctly calculates local offline directory and VFS cache."""
@@ -35,7 +38,7 @@ def test_storage_breakdown_metrics(storage_mgr, tmp_path):
         offline_path=str(offline_dir),
         used_storage_bytes=5 * 1024 * 1024,
         total_storage_bytes=10 * 1024 * 1024,
-        is_sample=True
+        is_sample=True,
     )
 
     breakdown = storage_mgr.calculate_storage_breakdown(acc)
@@ -49,6 +52,7 @@ def test_storage_breakdown_metrics(storage_mgr, tmp_path):
     assert breakdown.offline_used_bytes == 1024 + 2048
     assert breakdown.offline_file_count == 2
     assert "3.0 KB" in breakdown.formatted_offline_used
+
 
 def test_purge_vfs_cache(storage_mgr, mocker, tmp_path):
     """Test purging local VFS cache."""

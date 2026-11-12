@@ -1,14 +1,16 @@
 """Standalone Distribution Build & Packaging Script for GDrive Manager."""
 
 import os
-import sys
 import shutil
-import zipfile
 import subprocess
+import sys
+import zipfile
 from pathlib import Path
+
 
 def get_project_dir() -> Path:
     return Path(__file__).resolve().parent.parent
+
 
 def build_executable():
     project_dir = get_project_dir()
@@ -25,6 +27,7 @@ def build_executable():
         print("[!] Attempting to download bundled rclone...")
         sys.path.insert(0, str(project_dir))
         from app.services.rclone_service import RcloneService
+
         svc = RcloneService()
         if not svc.download_bundled_rclone():
             print("[x] Failed to obtain rclone executable. Aborting build.")
@@ -37,7 +40,9 @@ def build_executable():
         ico_file = project_dir / "assets" / "icons" / "app_icon.ico"
     if not ico_file.exists():
         print("[-] Application icon not found. Running generate_branding_assets.py...")
-        subprocess.run([sys.executable, str(project_dir / "scripts" / "generate_branding_assets.py")], check=True)
+        subprocess.run(
+            [sys.executable, str(project_dir / "scripts" / "generate_branding_assets.py")], check=True
+        )
     print(f"[+] Verified application icon: {ico_file}")
 
     # 3. Clean prior build artifacts
@@ -53,14 +58,7 @@ def build_executable():
     # 4. Invoke PyInstaller
     spec_file = project_dir / "gdrive_manager.spec"
     print(f"[*] Invoking PyInstaller with spec: {spec_file.name}")
-    cmd = [
-        sys.executable,
-        "-m",
-        "PyInstaller",
-        str(spec_file),
-        "--noconfirm",
-        "--clean"
-    ]
+    cmd = [sys.executable, "-m", "PyInstaller", str(spec_file), "--noconfirm", "--clean"]
 
     ret = subprocess.run(cmd)
     if ret.returncode != 0:
@@ -99,8 +97,10 @@ def build_executable():
     print(f"    - Portable ZIP:  {zip_path}")
     print("=" * 65)
 
+
 def main():
     build_executable()
+
 
 if __name__ == "__main__":
     main()

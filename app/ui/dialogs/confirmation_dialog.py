@@ -1,9 +1,11 @@
 """Reusable modern dark-themed modal confirmation dialog."""
 
-from typing import Callable, Optional
+from collections.abc import Callable
+
 import customtkinter as ctk
-from app.config.theme import Colors, Fonts, Dimensions
-from app.ui.assets import get_symbol_icon
+
+from app.config.theme import Colors, Dimensions, Fonts
+
 
 class ConfirmationDialog(ctk.CTkToplevel):
     """Modern modal dialog for confirming critical or destructive actions."""
@@ -16,9 +18,9 @@ class ConfirmationDialog(ctk.CTkToplevel):
         confirm_text: str = "Confirm",
         cancel_text: str = "Cancel",
         is_destructive: bool = False,
-        on_confirm: Optional[Callable[[], None]] = None,
-        on_cancel: Optional[Callable[[], None]] = None,
-        **kwargs
+        on_confirm: Callable[[], None] | None = None,
+        on_cancel: Callable[[], None] | None = None,
+        **kwargs,
     ):
         super().__init__(master, **kwargs)
         self.title(title)
@@ -50,19 +52,14 @@ class ConfirmationDialog(ctk.CTkToplevel):
             fg_color=Colors.CARD_BG,
             corner_radius=Dimensions.CARD_CORNER_RADIUS,
             border_width=1,
-            border_color=Colors.CARD_BORDER
+            border_color=Colors.CARD_BORDER,
         )
         container.pack(fill="both", expand=True, padx=16, pady=16)
 
         inner = ctk.CTkFrame(container, fg_color="transparent")
         inner.pack(fill="both", expand=True, padx=20, pady=20)
 
-        t_lbl = ctk.CTkLabel(
-            inner,
-            text=title,
-            font=Fonts.CARD_TITLE,
-            text_color=Colors.TEXT_PRIMARY
-        )
+        t_lbl = ctk.CTkLabel(inner, text=title, font=Fonts.CARD_TITLE, text_color=Colors.TEXT_PRIMARY)
         t_lbl.pack(anchor="w")
 
         m_lbl = ctk.CTkLabel(
@@ -71,7 +68,7 @@ class ConfirmationDialog(ctk.CTkToplevel):
             font=Fonts.BODY,
             text_color=Colors.TEXT_SECONDARY,
             wraplength=360,
-            justify="left"
+            justify="left",
         )
         m_lbl.pack(anchor="w", pady=(8, 20))
 
@@ -89,7 +86,7 @@ class ConfirmationDialog(ctk.CTkToplevel):
             border_color=Colors.CARD_BORDER,
             height=36,
             width=100,
-            command=self._handle_cancel
+            command=self._handle_cancel,
         )
         cancel_btn.pack(side="right")
 
@@ -105,7 +102,7 @@ class ConfirmationDialog(ctk.CTkToplevel):
             hover_color=btn_hover,
             height=36,
             width=110,
-            command=self._handle_confirm
+            command=self._handle_confirm,
         )
         confirm_btn.pack(side="right", padx=(0, 10))
 
