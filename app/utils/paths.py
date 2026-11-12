@@ -10,6 +10,17 @@ def get_base_dir() -> Path:
     if hasattr(sys, "_MEIPASS"):
         return Path(sys._MEIPASS)
     if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).parent
+        internal_dir = exe_dir / "_internal"
+        if internal_dir.exists():
+            return internal_dir
+        return exe_dir
+    return Path(__file__).resolve().parent.parent.parent
+
+
+def get_app_dir() -> Path:
+    """Return the root directory containing the executable or source repository."""
+    if getattr(sys, "frozen", False):
         return Path(sys.executable).parent
     return Path(__file__).resolve().parent.parent.parent
 

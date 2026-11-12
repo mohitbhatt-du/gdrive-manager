@@ -6,7 +6,7 @@ import customtkinter as ctk
 
 from app.config.theme import Colors, Dimensions, Fonts
 from app.models.account import Account
-from app.ui.assets import get_drive_hardware_icon
+from app.ui.assets import get_drive_hardware_icon, get_symbol_icon
 from app.ui.drive_card import DriveCard
 
 
@@ -21,6 +21,8 @@ class Dashboard(ctk.CTkFrame):
         on_open_drive: Callable[[Account], None] | None = None,
         on_toggle_mount: Callable[[Account], None] | None = None,
         on_settings: Callable[[Account], None] | None = None,
+        on_browse_drive: Callable[[Account], None] | None = None,
+        on_refresh_storage: Callable[[], None] | None = None,
         **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
@@ -29,8 +31,14 @@ class Dashboard(ctk.CTkFrame):
         self.on_open_drive = on_open_drive
         self.on_toggle_mount = on_toggle_mount
         self.on_settings = on_settings
+        self.on_browse_drive = on_browse_drive
+        self.on_refresh_storage = on_refresh_storage
 
         self.cards: list[DriveCard] = []
+
+        self.total_accounts_lbl: ctk.CTkLabel | None = None
+        self.streaming_drives_lbl: ctk.CTkLabel | None = None
+        self.cloud_usage_lbl: ctk.CTkLabel | None = None
 
         self._build_ui()
 
@@ -54,7 +62,7 @@ class Dashboard(ctk.CTkFrame):
         )
         subtitle_lbl.pack(anchor="w", pady=(2, 0))
 
-        # Right Header: "+ Add GDrive" Primary Button
+        # Right Header: "+ Add GDrive" Primary Button & Refresh Button
         add_btn = ctk.CTkButton(
             header_frame,
             text="+ Add GDrive",
@@ -66,6 +74,23 @@ class Dashboard(ctk.CTkFrame):
             command=self.on_add_drive,
         )
         add_btn.pack(side="right")
+
+        if self.on_refresh_storage:
+            refresh_btn = ctk.CTkButton(
+                header_frame,
+                text="Refresh Storage",
+                image=get_symbol_icon("refresh", 14, Colors.TEXT_PRIMARY),
+                compound="left",
+                font=Fonts.BUTTON,
+                fg_color=Colors.CARD_BG,
+                hover_color=Colors.CARD_HOVER,
+                border_width=1,
+                border_color=Colors.CARD_BORDER,
+                corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
+                height=38,
+                command=self.on_refresh_storage,
+            )
+            refresh_btn.pack(side="right", padx=(0, 10))
 
         # 2. Key Metrics Bar (Total Drives, Active Mounts, Cloud Storage)
         self._build_stats_bar()
@@ -83,7 +108,7 @@ class Dashboard(ctk.CTkFrame):
         self.render_cards()
 
     def _build_stats_bar(self):
-        """Build summary metric pills."""
+        """Build summary metric pills with dynamic labels."""
         stats_frame = ctk.CTkFrame(self, fg_color="transparent")
         stats_frame.pack(fill="x", padx=28, pady=(0, 16))
 
@@ -95,33 +120,82 @@ class Dashboard(ctk.CTkFrame):
         formatted_used = Account.format_bytes(total_used_bytes)
         formatted_alloc = Account.format_bytes(total_alloc_bytes)
 
-        stats = [
-            ("Total Accounts", f"{total_drives} Active", Colors.ACCENT_LIGHT),
-            ("Streaming Drives", f"{mounted_count} Mounted", Colors.STATUS_MOUNTED),
-            ("Cloud Usage", f"{formatted_used} of {formatted_alloc}", Colors.ACCENT_CYAN),
-        ]
+        # 1. Total Accounts Pill
+        pill1 = ctk.CTkFrame(
+            stats_frame,
+            fg_color=Colors.CARD_BG,
+            corner_radius=Dimensions.CARD_CORNER_RADIUS,
+            border_width=1,
+            border_color=Colors.CARD_BORDER,
+            height=52,
+        )
+        pill1.pack(side="left", padx=(0, 12), fill="x", expand=True)
+        box1 = ctk.CTkFrame(pill1, fg_color="transparent")
+        box1.pack(padx=14, pady=8, fill="x")
+        t1 = ctk.CTkLabel(box1, text="TOTAL ACCOUNTS", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED)
+        t1.pack(anchor="w")
+        self.total_accounts_lbl = ctk.CTkLabel(
+            box1, text=f"{total_drives} Active", font=Fonts.BODY_BOLD, text_color=Colors.ACCENT_LIGHT
+        )
+        self.total_accounts_lbl.pack(anchor="w")
 
-        for title, val, accent in stats:
-            pill = ctk.CTkFrame(
-                stats_frame,
-                fg_color=Colors.CARD_BG,
-                corner_radius=Dimensions.CARD_CORNER_RADIUS,
-                border_width=1,
-                border_color=Colors.CARD_BORDER,
-                height=52,
-            )
-            pill.pack(side="left", padx=(0, 12), fill="x", expand=True)
+        # 2. Streaming Drives Pill
+        pill2 = ctk.CTkFrame(
+            stats_frame,
+            fg_color=Colors.CARD_BG,
+            corner_radius=Dimensions.CARD_CORNER_RADIUS,
+            border_width=1,
+            border_color=Colors.CARD_BORDER,
+            height=52,
+        )
+        pill2.pack(side="left", padx=(0, 12), fill="x", expand=True)
+        box2 = ctk.CTkFrame(pill2, fg_color="transparent")
+        box2.pack(padx=14, pady=8, fill="x")
+        t2 = ctk.CTkLabel(box2, text="STREAMING DRIVES", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED)
+        t2.pack(anchor="w")
+        self.streaming_drives_lbl = ctk.CTkLabel(
+            box2, text=f"{mounted_count} Mounted", font=Fonts.BODY_BOLD, text_color=Colors.STATUS_MOUNTED
+        )
+        self.streaming_drives_lbl.pack(anchor="w")
 
-            pill_box = ctk.CTkFrame(pill, fg_color="transparent")
-            pill_box.pack(padx=14, pady=8, fill="x")
+        # 3. Cloud Usage Pill
+        pill3 = ctk.CTkFrame(
+            stats_frame,
+            fg_color=Colors.CARD_BG,
+            corner_radius=Dimensions.CARD_CORNER_RADIUS,
+            border_width=1,
+            border_color=Colors.CARD_BORDER,
+            height=52,
+        )
+        pill3.pack(side="left", padx=(0, 12), fill="x", expand=True)
+        box3 = ctk.CTkFrame(pill3, fg_color="transparent")
+        box3.pack(padx=14, pady=8, fill="x")
+        t3 = ctk.CTkLabel(box3, text="CLOUD USAGE", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED)
+        t3.pack(anchor="w")
+        self.cloud_usage_lbl = ctk.CTkLabel(
+            box3,
+            text=f"{formatted_used} of {formatted_alloc}",
+            font=Fonts.BODY_BOLD,
+            text_color=Colors.ACCENT_CYAN,
+        )
+        self.cloud_usage_lbl.pack(anchor="w")
 
-            t_lbl = ctk.CTkLabel(
-                pill_box, text=title.upper(), font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED
-            )
-            t_lbl.pack(anchor="w")
+    def update_stats(self):
+        """Update metrics bar labels with current account numbers and storage totals."""
+        total_drives = len(self.accounts)
+        mounted_count = sum(1 for a in self.accounts if a.is_mounted)
+        total_used_bytes = sum(a.used_storage_bytes for a in self.accounts)
+        total_alloc_bytes = sum(a.total_storage_bytes for a in self.accounts)
 
-            v_lbl = ctk.CTkLabel(pill_box, text=val, font=Fonts.BODY_BOLD, text_color=accent)
-            v_lbl.pack(anchor="w")
+        formatted_used = Account.format_bytes(total_used_bytes)
+        formatted_alloc = Account.format_bytes(total_alloc_bytes)
+
+        if self.total_accounts_lbl and self.total_accounts_lbl.winfo_exists():
+            self.total_accounts_lbl.configure(text=f"{total_drives} Active")
+        if self.streaming_drives_lbl and self.streaming_drives_lbl.winfo_exists():
+            self.streaming_drives_lbl.configure(text=f"{mounted_count} Mounted")
+        if self.cloud_usage_lbl and self.cloud_usage_lbl.winfo_exists():
+            self.cloud_usage_lbl.configure(text=f"{formatted_used} of {formatted_alloc}")
 
     def render_cards(self):
         """Render grid of DriveCards or empty state."""
@@ -144,7 +218,10 @@ class Dashboard(ctk.CTkFrame):
                 on_open_drive=self.on_open_drive,
                 on_toggle_mount=self.on_toggle_mount,
                 on_settings=self.on_settings,
+                on_browse_drive=self.on_browse_drive,
             )
+            card.grid(row=row, column=col, padx=8, pady=8, sticky="nsew")
+            self.cards.append(card)
             card.grid(row=row, column=col, padx=8, pady=8, sticky="nsew")
             self.cards.append(card)
 
@@ -192,6 +269,7 @@ class Dashboard(ctk.CTkFrame):
         add_btn.pack(pady=(0, 40))
 
     def update_accounts(self, accounts: list[Account]):
-        """Update accounts list and redraw cards."""
+        """Update accounts list, recalculate metrics, and redraw cards."""
         self.accounts = accounts
+        self.update_stats()
         self.render_cards()

@@ -21,6 +21,7 @@ from app.services.windows_drive_service import WindowsDriveService
 from app.ui.assets import get_gdrive_icon
 from app.ui.dashboard import Dashboard
 from app.ui.dialogs.add_account_dialog import AddAccountDialog
+from app.ui.dialogs.cloud_browser_dialog import CloudBrowserDialog
 from app.ui.dialogs.confirmation_dialog import ConfirmationDialog
 from app.ui.dialogs.drive_settings_dialog import DriveSettingsDialog
 from app.ui.dialogs.setup_wizard_dialog import SetupWizardDialog
@@ -132,6 +133,9 @@ class MainWindow(ctk.CTk):
         if self.enable_tray and not is_onboarding_completed():
             self.after(500, self.open_setup_wizard)
 
+        # Asynchronously refresh storage quotas from Google Drive for real accounts
+        self.account_manager.refresh_storage_quotas(self._on_quotas_refreshed)
+
     def _init_layout(self):
         # Configure grid: Column 0 is sidebar (fixed), Column 1 is main content area (expands)
         self.grid_rowconfigure(0, weight=1)
@@ -162,6 +166,8 @@ class MainWindow(ctk.CTk):
             on_open_drive=self.handle_open_drive,
             on_toggle_mount=self.handle_toggle_mount,
             on_settings=self.open_drive_settings_dialog,
+            on_browse_drive=self.open_cloud_browser,
+            on_refresh_storage=self.refresh_storage_quotas,
         )
         self.pages["drives"] = self.dashboard
 
@@ -171,6 +177,7 @@ class MainWindow(ctk.CTk):
             accounts=self.accounts,
             on_toggle_mount=self.handle_toggle_mount,
             on_open_drive=self.handle_open_drive,
+            on_browse_drive=self.open_cloud_browser,
         )
         self.pages["streaming"] = self.streaming_page
 
@@ -299,10 +306,45 @@ class MainWindow(ctk.CTk):
         self.dashboard.update_accounts(self.accounts)
         self.streaming_page.update_accounts(self.accounts)
         self.sidebar.update_account_count(len(self.accounts))
+        # Asynchronously fetch quota in background and update metrics
+        self.account_manager.refresh_storage_quotas(self._on_quotas_refreshed)
         messagebox.showinfo(
             "Account Connected",
             f"Account '{account.display_name}' has been configured for drive {account.drive_letter}.\n"
             "Ready for mounting or offline synchronization.",
+        )
+
+    def _on_quotas_refreshed(self):
+        """Dispatched when background quota refresh finishes."""
+
+        def _ui():
+            self.accounts = self.account_manager.get_accounts()
+            self.dashboard.update_accounts(self.accounts)
+            self.streaming_page.update_accounts(self.accounts)
+            self.sidebar.update_status("Cloud storage quotas updated.")
+
+        self.after(0, _ui)
+
+    def refresh_storage_quotas(self):
+        """User-triggered cloud storage quota refresh."""
+        self.sidebar.update_status("Refreshing storage quotas from Google Drive...")
+        self.account_manager.refresh_storage_quotas(self._on_quotas_refreshed)
+
+    def open_cloud_browser(self, account: Account | None = None):
+        """Open in-app Cloud File & Directory Browser (no drive mount required)."""
+        target = account or (self.accounts[0] if self.accounts else None)
+        if not target:
+            messagebox.showinfo(
+                "No Accounts",
+                "Please connect a Google Drive account first to browse cloud files.",
+            )
+            return
+        CloudBrowserDialog(
+            self,
+            account=target,
+            rclone_service=self.rclone_service,
+            all_accounts=self.accounts,
+            on_refresh=self.refresh_storage_quotas,
         )
 
     def open_drive_settings_dialog(self, account: Account):

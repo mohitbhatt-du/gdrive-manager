@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.1] - 2026-11-12
+
+### Added
+- **In-App Cloud File & Directory Explorer (`CloudBrowserDialog`)**:
+  - Visit and navigate remote Google Drive folders and subdirectories directly inside the desktop application without requiring WinFsp driver or Windows drive letter mounting.
+  - Full support for **"Shared with me"** files (`--drive-shared-with-me`) with instant toggle switch.
+  - In-app file downloading to local storage with native Windows Save As dialog.
+  - Direct web client deep-linking ("Open in Web").
+  - Real-time file name filtering and breadcrumb path traversal.
+  - Dedicated "Browse" action buttons on both Dashboard drive cards and Streaming drives table.
+- **Dynamic Dashboard Storage & Quota Refresh**:
+  - Top metric pills (Total Accounts, Streaming Drives, Cloud Usage) now update dynamically in real time whenever drives are connected, mounted, unmounted, or removed.
+  - Automatic asynchronous cloud quota sync (`rclone about`) on startup and upon connecting new accounts.
+  - Manual "Refresh Storage" trigger added to Dashboard header.
+
+### Fixed
+- **Rclone Discovery in Packaged Release**:
+  - Resolved missing rclone engine error by expanding binary discovery across PyInstaller `_internal\bin\rclone\rclone.exe`, user `AppData`, root directory, and system `PATH`.
+  - Fixed runtime rclone downloads by saving to user-writable `%LOCALAPPDATA%\GDriveManager\bin\rclone\` rather than restricted `Program Files` directory, preventing UAC permission failures.
+
+---
+
 ## [1.0.0] - 2026-11-12
 
 ### Added

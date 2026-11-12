@@ -9,7 +9,8 @@ import zipfile
 from pathlib import Path
 
 from app.utils.logger import get_logger
-from app.utils.paths import BASE_DIR, get_app_data_dir
+from app.utils.paths import get_app_data_dir
+from app.utils.platform_checks import get_rclone_executable_path
 
 logger = get_logger("RcloneService")
 
@@ -37,7 +38,7 @@ class RcloneService:
 
     @property
     def rclone_exe(self) -> str | None:
-        """Resolve rclone executable path across custom, bundled, and system PATH."""
+        """Resolve rclone executable path across custom, bundled, AppData, and system PATH."""
         if self._rclone_exe and Path(self._rclone_exe).exists():
             return self._rclone_exe
 
@@ -46,19 +47,13 @@ class RcloneService:
             self._rclone_exe = self.custom_binary
             return self._rclone_exe
 
-        # 2. Bundled in bin/rclone/rclone.exe
-        bundled = BASE_DIR / "bin" / "rclone" / "rclone.exe"
-        if bundled.exists():
-            self._rclone_exe = str(bundled)
+        # 2. Check platform discovery (bundled _internal, BASE_DIR, AppData, PATH)
+        discovered = get_rclone_executable_path()
+        if discovered:
+            self._rclone_exe = discovered
             return self._rclone_exe
 
-        # 3. System PATH
-        system_rclone = shutil.which("rclone")
-        if system_rclone:
-            self._rclone_exe = system_rclone
-            return self._rclone_exe
-
-        return self._rclone_exe
+        return None
 
     @rclone_exe.setter
     def rclone_exe(self, value: str | None):
@@ -152,15 +147,20 @@ class RcloneService:
             logger.error(f"Failed to delete remote {remote_name}: {e}")
             return False
 
-    def download_bundled_rclone(self, progress_callback=None) -> bool:
-        """Download official rclone Windows x64 standalone zip and extract to bin/rclone/."""
+    def download_bundled_rclone(self, dest_dir: Path | None = None, progress_callback=None) -> bool:
+        """Download official rclone Windows x64 standalone zip and extract to safe location.
+
+        If dest_dir is not specified, defaults to get_app_data_dir() / 'bin' / 'rclone' to ensure
+        clean user-level write permissions even when running inside Program Files.
+        """
         url = "https://downloads.rclone.org/rclone-current-windows-amd64.zip"
-        dest_dir = BASE_DIR / "bin" / "rclone"
+        if dest_dir is None:
+            dest_dir = get_app_data_dir() / "bin" / "rclone"
         dest_dir.mkdir(parents=True, exist_ok=True)
         zip_path = dest_dir / "rclone.zip"
 
         try:
-            logger.info(f"Downloading rclone from {url}...")
+            logger.info(f"Downloading rclone from {url} to {dest_dir}...")
             req = urllib.request.Request(
                 url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) GDriveManager"}
             )
@@ -192,4 +192,205 @@ class RcloneService:
                     zip_path.unlink()
                 except Exception:
                     pass
+            return False
+
+    def list_directory(
+        self, remote_name: str, remote_path: str = "", shared_with_me: bool = False
+    ) -> list[dict]:
+        """List files and folders in remote path using 'rclone lsjson'.
+
+        Supports browsing remote directories without mounting virtual drives,
+        including Google Drive 'Shared with me' files.
+        """
+        if remote_name.startswith("sample") or remote_name == "mock_remote":
+            return self._get_sample_directory(remote_path, shared_with_me)
+
+        clean_path = remote_path.strip("/\\").replace("\\", "/")
+        target = f"{remote_name}:{clean_path}" if clean_path else f"{remote_name}:"
+
+        args = ["lsjson", target, "--max-depth", "1"]
+        if shared_with_me:
+            args.append("--drive-shared-with-me")
+
+        try:
+            code, stdout, stderr = self.execute_cmd(args, timeout=30)
+            if code == 0 and stdout:
+                raw_items = json.loads(stdout)
+                if isinstance(raw_items, list):
+                    items: list[dict] = [i for i in raw_items if isinstance(i, dict)]
+                    # Sort: directories first (alphabetical), then files (alphabetical)
+                    items.sort(key=lambda x: (not x.get("IsDir", False), str(x.get("Name", "")).lower()))
+                    return items
+            logger.warning(f"rclone lsjson failed for {target} (code {code}): {stderr}")
+            return []
+        except Exception as e:
+            logger.error(f"Failed to list directory for {remote_name}: {e}")
+            return []
+
+    def _get_sample_directory(self, remote_path: str = "", shared_with_me: bool = False) -> list[dict]:
+        """Return rich mock files and directories for preview or sample mode."""
+        clean_path = remote_path.strip("/\\").replace("\\", "/")
+        if shared_with_me:
+            return [
+                {
+                    "Path": "Shared Team Project",
+                    "Name": "Shared Team Project",
+                    "Size": -1,
+                    "MimeType": "inode/directory",
+                    "ModTime": "2026-11-10T14:20:00Z",
+                    "IsDir": True,
+                    "ID": "shared_f1",
+                },
+                {
+                    "Path": "Q4 Quarterly Presentation.pptx",
+                    "Name": "Q4 Quarterly Presentation.pptx",
+                    "Size": 14680064,
+                    "MimeType": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                    "ModTime": "2026-11-11T09:15:00Z",
+                    "IsDir": False,
+                    "ID": "shared_f2",
+                },
+                {
+                    "Path": "Architecture Design Review.pdf",
+                    "Name": "Architecture Design Review.pdf",
+                    "Size": 3840212,
+                    "MimeType": "application/pdf",
+                    "ModTime": "2026-11-12T10:00:00Z",
+                    "IsDir": False,
+                    "ID": "shared_f3",
+                },
+                {
+                    "Path": "Client Contract Agreement.docx",
+                    "Name": "Client Contract Agreement.docx",
+                    "Size": 524288,
+                    "MimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    "ModTime": "2026-11-09T18:30:00Z",
+                    "IsDir": False,
+                    "ID": "shared_f4",
+                },
+            ]
+        if not clean_path:
+            return [
+                {
+                    "Path": "Documents",
+                    "Name": "Documents",
+                    "Size": -1,
+                    "MimeType": "inode/directory",
+                    "ModTime": "2026-11-10T10:00:00Z",
+                    "IsDir": True,
+                    "ID": "mock_d1",
+                },
+                {
+                    "Path": "Projects",
+                    "Name": "Projects",
+                    "Size": -1,
+                    "MimeType": "inode/directory",
+                    "ModTime": "2026-11-08T16:45:00Z",
+                    "IsDir": True,
+                    "ID": "mock_d2",
+                },
+                {
+                    "Path": "Photos & Media",
+                    "Name": "Photos & Media",
+                    "Size": -1,
+                    "MimeType": "inode/directory",
+                    "ModTime": "2026-11-05T12:30:00Z",
+                    "IsDir": True,
+                    "ID": "mock_d3",
+                },
+                {
+                    "Path": "Financial Forecast 2026.xlsx",
+                    "Name": "Financial Forecast 2026.xlsx",
+                    "Size": 2457600,
+                    "MimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    "ModTime": "2026-11-12T08:00:00Z",
+                    "IsDir": False,
+                    "ID": "mock_f1",
+                },
+                {
+                    "Path": "Annual Report.pdf",
+                    "Name": "Annual Report.pdf",
+                    "Size": 5242880,
+                    "MimeType": "application/pdf",
+                    "ModTime": "2026-11-11T15:20:00Z",
+                    "IsDir": False,
+                    "ID": "mock_f2",
+                },
+                {
+                    "Path": "Backup Archive.zip",
+                    "Name": "Backup Archive.zip",
+                    "Size": 104857600,
+                    "MimeType": "application/zip",
+                    "ModTime": "2026-11-01T22:10:00Z",
+                    "IsDir": False,
+                    "ID": "mock_f3",
+                },
+            ]
+        elif clean_path == "Documents":
+            return [
+                {
+                    "Path": "Documents/Work Notes.txt",
+                    "Name": "Work Notes.txt",
+                    "Size": 45056,
+                    "MimeType": "text/plain",
+                    "ModTime": "2026-11-10T11:00:00Z",
+                    "IsDir": False,
+                    "ID": "mock_doc1",
+                },
+                {
+                    "Path": "Documents/Research Summary.pdf",
+                    "Name": "Research Summary.pdf",
+                    "Size": 1843200,
+                    "MimeType": "application/pdf",
+                    "ModTime": "2026-11-09T14:20:00Z",
+                    "IsDir": False,
+                    "ID": "mock_doc2",
+                },
+            ]
+        elif clean_path == "Projects":
+            return [
+                {
+                    "Path": "Projects/SourceCode.tar.gz",
+                    "Name": "SourceCode.tar.gz",
+                    "Size": 45000000,
+                    "MimeType": "application/gzip",
+                    "ModTime": "2026-11-07T12:00:00Z",
+                    "IsDir": False,
+                    "ID": "mock_proj1",
+                },
+                {
+                    "Path": "Projects/Specification.pdf",
+                    "Name": "Specification.pdf",
+                    "Size": 1200000,
+                    "MimeType": "application/pdf",
+                    "ModTime": "2026-11-08T09:30:00Z",
+                    "IsDir": False,
+                    "ID": "mock_proj2",
+                },
+            ]
+        return []
+
+    def download_file(self, remote_name: str, remote_path: str, local_dest: str) -> bool:
+        """Download remote cloud file to local destination path."""
+        if remote_name.startswith("sample") or remote_name == "mock_remote":
+            try:
+                dest = Path(local_dest)
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_text(f"Sample download of {remote_path} from {remote_name}", encoding="utf-8")
+                return True
+            except Exception as e:
+                logger.error(f"Sample file download failed: {e}")
+                return False
+
+        clean_path = remote_path.strip("/\\").replace("\\", "/")
+        src = f"{remote_name}:{clean_path}"
+        try:
+            code, stdout, stderr = self.execute_cmd(["copyto", src, local_dest], timeout=120)
+            if code == 0:
+                logger.info(f"Downloaded {src} to {local_dest} successfully")
+                return True
+            logger.warning(f"rclone copyto failed (code {code}): {stderr}")
+            return False
+        except Exception as e:
+            logger.error(f"Exception during file download: {e}")
             return False

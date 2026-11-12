@@ -18,12 +18,14 @@ class StreamingPage(ctk.CTkFrame):
         accounts: list[Account],
         on_toggle_mount: Callable[[Account], None] | None = None,
         on_open_drive: Callable[[Account], None] | None = None,
+        on_browse_drive: Callable[[Account], None] | None = None,
         **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.accounts = accounts
         self.on_toggle_mount = on_toggle_mount
         self.on_open_drive = on_open_drive
+        self.on_browse_drive = on_browse_drive
 
         self._build_ui()
 
@@ -222,6 +224,21 @@ class StreamingPage(ctk.CTkFrame):
             )
             m_btn.pack(side="left", padx=(0, 6))
 
+            browse_btn = ctk.CTkButton(
+                act_box,
+                text="Browse",
+                font=Fonts.BUTTON,
+                fg_color=Colors.CARD_BG,
+                hover_color=Colors.CARD_HOVER,
+                border_width=1,
+                border_color=Colors.CARD_BORDER,
+                corner_radius=6,
+                width=70,
+                height=30,
+                command=lambda a=acc: self._handle_browse(a),
+            )
+            browse_btn.pack(side="left", padx=(0, 6))
+
             if acc.is_mounted:
                 open_btn = ctk.CTkButton(
                     act_box,
@@ -237,6 +254,10 @@ class StreamingPage(ctk.CTkFrame):
                     command=lambda a=acc: self._handle_open(a),
                 )
                 open_btn.pack(side="left")
+
+    def _handle_browse(self, acc: Account):
+        if self.on_browse_drive:
+            self.on_browse_drive(acc)
 
     def _handle_toggle(self, acc: Account):
         if self.on_toggle_mount:

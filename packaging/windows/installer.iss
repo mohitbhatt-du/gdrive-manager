@@ -2,7 +2,7 @@
 ; Build target: GDriveManager-Setup-x64.exe
 
 #define MyAppName "GDrive Manager"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "GDrive Manager Contributors"
 #define MyAppURL "https://github.com/mohit/gdrive-manager"
 #define MyAppExeName "GDriveManager.exe"

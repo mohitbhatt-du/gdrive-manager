@@ -50,13 +50,57 @@ def get_available_drive_letters() -> list[str]:
 
 
 def get_rclone_executable_path() -> str | None:
-    """Return resolved rclone executable path (bundled or on system PATH)."""
-    from app.utils.paths import BASE_DIR
+    """Return resolved rclone executable path across bundled, AppData, system PATH, and standard Windows directories."""
+    import os
+    import sys
 
-    bundled = BASE_DIR / "bin" / "rclone" / "rclone.exe"
-    if bundled.exists():
-        return str(bundled)
-    return shutil.which("rclone")
+    from app.utils.paths import BASE_DIR, get_app_data_dir
+
+    candidates: list[Path] = []
+
+    # 1. sys._MEIPASS (PyInstaller onefile extraction)
+    if hasattr(sys, "_MEIPASS"):
+        candidates.append(Path(sys._MEIPASS) / "bin" / "rclone" / "rclone.exe")
+
+    # 2. PyInstaller onedir internal directory
+    if getattr(sys, "frozen", False):
+        exe_dir = Path(sys.executable).parent
+        candidates.append(exe_dir / "_internal" / "bin" / "rclone" / "rclone.exe")
+        candidates.append(exe_dir / "bin" / "rclone" / "rclone.exe")
+
+    # 3. BASE_DIR bundled path
+    candidates.append(BASE_DIR / "bin" / "rclone" / "rclone.exe")
+
+    # 4. LocalAppData user installation / downloaded binary
+    candidates.append(get_app_data_dir() / "bin" / "rclone" / "rclone.exe")
+
+    # 5. Check each explicit path
+    for candidate in candidates:
+        if candidate.exists() and candidate.is_file():
+            return str(candidate)
+
+    # 6. System PATH via shutil.which
+    path_hit = shutil.which("rclone")
+    if path_hit:
+        return path_hit
+
+    # 7. Standard Windows installation directories
+    pf = os.environ.get("ProgramFiles", "C:\\Program Files")
+    pf86 = os.environ.get("ProgramFiles(x86)", "C:\\Program Files (x86)")
+    local_app = os.environ.get("LOCALAPPDATA", "")
+
+    fallback_paths = [
+        Path(pf) / "rclone" / "rclone.exe",
+        Path(pf86) / "rclone" / "rclone.exe",
+        Path(local_app) / "Programs" / "rclone" / "rclone.exe" if local_app else None,
+        Path("C:/rclone/rclone.exe"),
+    ]
+
+    for p in fallback_paths:
+        if p and p.exists() and p.is_file():
+            return str(p)
+
+    return None
 
 
 def is_rclone_installed() -> bool:

@@ -37,7 +37,7 @@ def build_executable():
         from app.services.rclone_service import RcloneService
 
         svc = RcloneService()
-        if not svc.download_bundled_rclone():
+        if not svc.download_bundled_rclone(dest_dir=project_dir / "bin" / "rclone"):
             print("[x] Failed to obtain rclone executable. Aborting build.")
             sys.exit(1)
     print(f"[+] Verified rclone binary: {rclone_exe}")

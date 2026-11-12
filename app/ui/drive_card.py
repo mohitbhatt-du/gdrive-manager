@@ -19,6 +19,7 @@ class DriveCard(ctk.CTkFrame):
         on_open_drive: Callable[[Account], None] | None = None,
         on_toggle_mount: Callable[[Account], None] | None = None,
         on_settings: Callable[[Account], None] | None = None,
+        on_browse_drive: Callable[[Account], None] | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -33,6 +34,7 @@ class DriveCard(ctk.CTkFrame):
         self.on_open_drive = on_open_drive
         self.on_toggle_mount = on_toggle_mount
         self.on_settings = on_settings
+        self.on_browse_drive = on_browse_drive
 
         self._build_ui()
 
@@ -171,6 +173,23 @@ class DriveCard(ctk.CTkFrame):
         )
         self.mount_btn.pack(side="left", padx=(10, 8), pady=7)
 
+        # Browse In-App Button (Does not require virtual drive mount)
+        browse_btn = ctk.CTkButton(
+            actions_frame,
+            text="Browse",
+            image=get_symbol_icon("folder", 14, Colors.TEXT_PRIMARY),
+            compound="left",
+            font=Fonts.BUTTON,
+            fg_color=Colors.CARD_BG,
+            hover_color=Colors.CARD_HOVER,
+            border_width=1,
+            border_color=Colors.CARD_BORDER,
+            corner_radius=Dimensions.BUTTON_CORNER_RADIUS,
+            height=32,
+            command=self._handle_browse_drive,
+        )
+        browse_btn.pack(side="left", padx=(0, 8), pady=7)
+
         # Open in Explorer Button
         open_btn = ctk.CTkButton(
             actions_frame,
@@ -203,6 +222,10 @@ class DriveCard(ctk.CTkFrame):
             command=self._handle_settings,
         )
         settings_btn.pack(side="right", padx=(0, 10), pady=7)
+
+    def _handle_browse_drive(self):
+        if self.on_browse_drive:
+            self.on_browse_drive(self.account)
 
     def _handle_open_drive(self):
         if self.on_open_drive:

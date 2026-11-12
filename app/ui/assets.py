@@ -241,6 +241,59 @@ def get_symbol_icon(name: str, size: int = 20, color: str = "#F9FAFB") -> ctk.CT
             width=lw,
         )
 
+    elif name == "download":
+        mid = w // 2
+        draw.line([(mid, int(w * 0.2)), (mid, int(w * 0.65))], fill=rgb, width=lw)
+        draw.line(
+            [(int(w * 0.35), int(w * 0.48)), (mid, int(w * 0.65)), (int(w * 0.65), int(w * 0.48))],
+            fill=rgb,
+            width=lw,
+            joint="curve",
+        )
+        draw.line([(int(w * 0.25), int(w * 0.78)), (int(w * 0.75), int(w * 0.78))], fill=rgb, width=lw)
+
+    elif name == "file":
+        draw.polygon(
+            [
+                (int(w * 0.25), int(w * 0.18)),
+                (int(w * 0.58), int(w * 0.18)),
+                (int(w * 0.75), int(w * 0.35)),
+                (int(w * 0.75), int(w * 0.82)),
+                (int(w * 0.25), int(w * 0.82)),
+            ],
+            outline=rgb,
+            width=lw,
+        )
+        draw.line(
+            [(int(w * 0.58), int(w * 0.18)), (int(w * 0.58), int(w * 0.35)), (int(w * 0.75), int(w * 0.35))],
+            fill=rgb,
+            width=lw,
+        )
+
+    elif name == "refresh":
+        mid = w // 2
+        r = int(w * 0.28)
+        draw.arc([mid - r, mid - r, mid + r, mid + r], start=45, end=315, fill=rgb, width=lw)
+        draw.polygon(
+            [(int(w * 0.68), int(w * 0.22)), (int(w * 0.78), int(w * 0.38)), (int(w * 0.58), int(w * 0.36))],
+            fill=rgb,
+        )
+
+    elif name == "arrow_up":
+        mid = w // 2
+        draw.line([(mid, int(w * 0.75)), (mid, int(w * 0.25))], fill=rgb, width=lw)
+        draw.line(
+            [(int(w * 0.32), int(w * 0.45)), (mid, int(w * 0.25)), (int(w * 0.68), int(w * 0.45))],
+            fill=rgb,
+            width=lw,
+            joint="curve",
+        )
+
+    elif name == "shared":
+        draw.ellipse([int(w * 0.22), int(w * 0.22), int(w * 0.42), int(w * 0.42)], fill=rgb)
+        draw.ellipse([int(w * 0.58), int(w * 0.22), int(w * 0.78), int(w * 0.42)], fill=rgb)
+        draw.line([(int(w * 0.32), int(w * 0.32)), (int(w * 0.68), int(w * 0.32))], fill=rgb, width=lw)
+
     else:
         # Generic dot
         mid = w // 2
