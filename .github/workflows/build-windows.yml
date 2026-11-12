@@ -52,11 +52,12 @@ jobs:
           }
           Write-Host "[*] Testing $exePath --version..."
           & $exePath --version
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "[-] Executable failed with exit code $LASTEXITCODE"
+          $exitCode = if ($null -eq $LASTEXITCODE) { 0 } else { $LASTEXITCODE }
+          if ($exitCode -ne 0) {
+            Write-Error "[-] Executable failed with exit code $exitCode"
             exit 1
           }
-          Write-Host "[✓] Executable verified: started and executed cleanly."
+          Write-Host "[+] Executable verified: started and executed cleanly."
 
       - name: Upload Portable Windows Package Artifact
         uses: actions/upload-artifact@v4
