@@ -8,9 +8,7 @@ from PyInstaller.utils.hooks import collect_all
 
 block_cipher = None
 
-project_dir = Path.cwd().resolve()
-if (project_dir / "gdrive-manager").exists():
-    project_dir = project_dir / "gdrive-manager"
+project_dir = Path(SPECPATH).resolve()
 
 ctk_datas, ctk_binaries, ctk_hiddenimports = collect_all("customtkinter")
 pystray_datas, pystray_binaries, pystray_hiddenimports = collect_all("pystray")
@@ -20,9 +18,7 @@ datas = [
     (str(project_dir / "bin" / "rclone"), "bin/rclone"),
 ] + ctk_datas + pystray_datas
 
-binaries = [
-    (str(project_dir / "bin" / "rclone" / "rclone.exe"), "bin/rclone"),
-] + ctk_binaries + pystray_binaries
+binaries = ctk_binaries + pystray_binaries
 
 hiddenimports = [
     "customtkinter",
@@ -51,11 +47,10 @@ a = Analysis(
     excludes=["tkinter.test", "unittest"],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
 )
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure, a.zipped_data)
 
 icon_path = str(project_dir / "assets" / "branding" / "icon.ico")
 if not os.path.exists(icon_path):
@@ -72,7 +67,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -88,7 +83,7 @@ coll = COLLECT(
     a.zipfiles,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,
     upx_exclude=[],
     name="GDriveManager",
 )

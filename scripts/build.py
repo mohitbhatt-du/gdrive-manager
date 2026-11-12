@@ -51,7 +51,7 @@ def build_executable():
         if target.exists():
             print(f"[*] Cleaning previous {d} directory...")
             try:
-                shutil.rmtree(str(target))
+                shutil.rmtree(str(target), ignore_errors=True)
             except Exception as e:
                 print(f"[!] Warning cleaning {d}: {e}")
 
