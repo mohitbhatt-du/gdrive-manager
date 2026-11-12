@@ -3,6 +3,7 @@
 from typing import Callable, Dict
 import customtkinter as ctk
 from app.config.theme import Colors, Fonts, Dimensions
+from app.__version__ import __version__
 from app.ui.assets import get_gdrive_icon, get_symbol_icon, get_drive_hardware_icon
 
 class Sidebar(ctk.CTkFrame):
@@ -13,7 +14,7 @@ class Sidebar(ctk.CTkFrame):
         master,
         on_navigate: Callable[[str], None],
         on_add_drive_click: Callable[[], None],
-        version: str = "v1.0.0",
+        version: str = f"v{__version__}",
         **kwargs
     ):
         super().__init__(

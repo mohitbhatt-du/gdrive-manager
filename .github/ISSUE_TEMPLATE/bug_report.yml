@@ -1,0 +1,61 @@
+name: Bug Report
+description: File a bug report to help improve GDrive Manager
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue in GDrive Manager!
+  - type: input
+    id: version
+    attributes:
+      label: GDrive Manager Version
+      description: What version of GDrive Manager are you using? (Check Settings or Sidebar footer)
+      placeholder: "e.g. 1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Windows Operating System Version
+      options:
+        - Windows 11 (64-bit)
+        - Windows 10 (64-bit)
+        - Other (specify in description)
+    validations:
+      required: true
+  - type: dropdown
+    id: winfsp
+    attributes:
+      label: WinFsp Driver Status
+      options:
+        - Installed & Active
+        - Not Installed (Offline mode only)
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Open GDrive Manager
+        2. Click 'Mount Drive' for drive G:
+        3. See error ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant Log Output
+      description: Paste relevant lines from Logs & Diagnostics page or %LOCALAPPDATA%\GDriveManager\logs\app.log
+      render: shell

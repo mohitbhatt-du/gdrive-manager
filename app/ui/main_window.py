@@ -9,6 +9,7 @@ import customtkinter as ctk
 from app.models.account import Account, get_sample_accounts
 from app.models.transfer_job import TransferJob, get_sample_transfers
 from app.config.theme import Colors, Fonts, Dimensions
+from app.__version__ import __version__
 from app.services.rclone_service import RcloneService
 from app.services.credential_service import CredentialService
 from app.config.account_repository import AccountRepository
@@ -147,7 +148,7 @@ class MainWindow(ctk.CTk):
             self,
             on_navigate=self.show_page,
             on_add_drive_click=self.open_add_account_dialog,
-            version="v1.0.0"
+            version=f"v{__version__}"
         )
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
@@ -248,7 +249,7 @@ class MainWindow(ctk.CTk):
         title = ctk.CTkLabel(inner, text="GDrive Manager", font=Fonts.HERO, text_color=Colors.TEXT_PRIMARY)
         title.pack()
 
-        ver = ctk.CTkLabel(inner, text="Version 1.0.0 (Production Architecture)", font=Fonts.CAPTION, text_color=Colors.ACCENT_LIGHT)
+        ver = ctk.CTkLabel(inner, text=f"Version {__version__} (Production Architecture)", font=Fonts.CAPTION, text_color=Colors.ACCENT_LIGHT)
         ver.pack(pady=(2, 16))
 
         desc_text = (
