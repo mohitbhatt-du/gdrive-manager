@@ -226,14 +226,14 @@ class StreamingPage(ctk.CTkFrame):
 
             browse_btn = ctk.CTkButton(
                 act_box,
-                text="Browse",
+                text="Browse In-App",
                 font=Fonts.BUTTON,
                 fg_color=Colors.CARD_BG,
                 hover_color=Colors.CARD_HOVER,
                 border_width=1,
                 border_color=Colors.CARD_BORDER,
                 corner_radius=6,
-                width=70,
+                width=100,
                 height=30,
                 command=lambda a=acc: self._handle_browse(a),
             )

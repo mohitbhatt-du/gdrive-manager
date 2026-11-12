@@ -1,5 +1,6 @@
 """Google OAuth 2.0 authentication manager coordinating rclone remote creation."""
 
+import os
 import subprocess
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -85,7 +86,7 @@ class AuthManager:
             on_status_update("Launching browser for Google OAuth sign-in...")
             logger.info(f"Starting Google Drive OAuth flow for remote '{remote_name}'...")
 
-            # Run rclone config create <remote_name> drive scope drive
+            # Run rclone config create <remote_name> drive scope drive config_is_local true
             cmd = [
                 exe,
                 "--config",
@@ -96,11 +97,21 @@ class AuthManager:
                 "drive",
                 "scope",
                 "drive",
+                "config_is_local",
+                "true",
             ]
 
-            process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                creationflags=flags,
+            )
 
-            on_status_update("Waiting for Google authorization in browser...")
+            on_status_update("Waiting for Google authorization in browser... Please sign in.")
             stdout, stderr = process.communicate(timeout=180)
 
             if process.returncode != 0:

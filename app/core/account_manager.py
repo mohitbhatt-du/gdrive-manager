@@ -20,25 +20,29 @@ class AccountManager:
         repository: AccountRepository,
         rclone_service: RcloneService,
         credential_service: CredentialService,
+        load_samples_if_empty: bool = False,
     ):
         self.repository = repository
         self.rclone_service = rclone_service
         self.credential_service = credential_service
+        self.load_samples_if_empty = load_samples_if_empty
         self.executor = ThreadPoolExecutor(max_workers=3, thread_name_prefix="AccountWorker")
 
         self._accounts: list[Account] = []
         self._load_initial_accounts()
 
     def _load_initial_accounts(self):
-        """Load real accounts from disk, or fallback to sample accounts if none exist."""
+        """Load real accounts from disk, or fallback to sample accounts if explicitly configured."""
         saved = self.repository.load_all()
         if saved:
             self._accounts = saved
             logger.info(f"Loaded {len(saved)} real accounts from repository.")
-        else:
-            # Fallback to UI preview sample accounts
+        elif self.load_samples_if_empty:
             self._accounts = get_sample_accounts()
-            logger.info("No saved accounts found. Loaded sample accounts for UI demonstration.")
+            logger.info("Loaded sample accounts for preview demonstration.")
+        else:
+            self._accounts = []
+            logger.info("No saved accounts found. Starting with clean account list.")
 
     def get_accounts(self) -> list[Account]:
         """Return currently loaded accounts."""
@@ -94,8 +98,8 @@ class AccountManager:
             self.credential_service.delete_token(account_id)
             self.executor.submit(self.rclone_service.delete_remote, target.remote_name)
 
-        # If all real accounts are deleted, restore sample preview
-        if not self._accounts:
+        # If all real accounts are deleted and sample mode requested, restore sample preview
+        if not self._accounts and self.load_samples_if_empty:
             self._accounts = get_sample_accounts()
 
         logger.info(f"Removed account {account_id}")
@@ -106,14 +110,18 @@ class AccountManager:
 
         def _task():
             real_accounts = [a for a in self._accounts if not a.is_sample]
+            updated = False
             for acc in real_accounts:
                 try:
                     quota = self.rclone_service.get_account_storage_quota(acc.remote_name)
                     if quota.get("total", 0) > 0:
                         acc.used_storage_bytes = quota.get("used", 0)
                         acc.total_storage_bytes = quota.get("total", 0)
+                        updated = True
                 except Exception as e:
                     logger.warning(f"Failed to refresh quota for {acc.display_name}: {e}")
+            if updated:
+                self.repository.save_all(self._accounts)
             if on_complete:
                 on_complete()
 

@@ -1,6 +1,6 @@
 """GDrive Manager application version metadata."""
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 __app_name__ = "GDrive Manager"
 __author__ = "GDrive Manager Contributors"
 __license__ = "MIT"

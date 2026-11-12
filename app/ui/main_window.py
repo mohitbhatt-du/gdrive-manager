@@ -204,6 +204,7 @@ class MainWindow(ctk.CTk):
             rclone_service=self.rclone_service,
             on_view_logs=lambda: self.show_page("logs"),
             on_rerun_wizard=self.open_setup_wizard,
+            on_force_unmount=self._force_unmount_all,
         )
         self.pages["settings"] = self.settings_page
 
@@ -455,6 +456,22 @@ class MainWindow(ctk.CTk):
             self.streaming_page.update_accounts(self.accounts)
 
         self.after(0, _refresh)
+
+    def _force_unmount_all(self):
+        """Force unmount all virtual drives and terminate background mount processes."""
+        self.mount_manager.unmount_all()
+        for acc in self.accounts:
+            acc.is_mounted = False
+            acc.mount_pid = None
+            acc.status = "Connected"
+        self.dashboard.update_accounts(self.accounts)
+        self.streaming_page.update_accounts(self.accounts)
+        self.sidebar.update_status("All virtual drives released.")
+        messagebox.showinfo(
+            "Drives Released",
+            "All virtual drives and background streaming processes have been safely terminated.\n"
+            "All Windows drive letters are now free.",
+        )
 
     def _on_close_window(self):
         """Handle window close event: minimize to tray if enabled, or safely exit."""

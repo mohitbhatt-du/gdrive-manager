@@ -24,12 +24,14 @@ class SettingsPage(ctk.CTkFrame):
         rclone_service: RcloneService | None = None,
         on_view_logs: Callable[[], None] | None = None,
         on_rerun_wizard: Callable[[], None] | None = None,
+        on_force_unmount: Callable[[], None] | None = None,
         **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
         self.rclone_service = rclone_service or RcloneService()
         self.on_view_logs = on_view_logs
         self.on_rerun_wizard = on_rerun_wizard
+        self.on_force_unmount = on_force_unmount
 
         self.start_with_win = ctk.BooleanVar(value=is_startup_enabled())
         self.minimize_to_tray = ctk.BooleanVar(value=True)
@@ -304,6 +306,20 @@ class SettingsPage(ctk.CTkFrame):
             command=self._handle_rerun_wizard,
         )
         wiz_btn.pack(side="left")
+
+        if self.on_force_unmount:
+            unmount_btn = ctk.CTkButton(
+                wiz_box,
+                text="Force Unmount All Virtual Drives",
+                font=Fonts.BUTTON,
+                fg_color=Colors.CARD_INNER,
+                hover_color=Colors.STATUS_WARNING,
+                border_width=1,
+                border_color=Colors.CARD_BORDER,
+                height=32,
+                command=self.on_force_unmount,
+            )
+            unmount_btn.pack(side="left", padx=(10, 0))
 
     def _handle_rerun_wizard(self):
         if self.on_rerun_wizard:

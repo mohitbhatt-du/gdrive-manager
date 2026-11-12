@@ -222,8 +222,6 @@ class Dashboard(ctk.CTkFrame):
             )
             card.grid(row=row, column=col, padx=8, pady=8, sticky="nsew")
             self.cards.append(card)
-            card.grid(row=row, column=col, padx=8, pady=8, sticky="nsew")
-            self.cards.append(card)
 
     def _render_empty_state(self):
         """Display helpful empty state when no accounts are configured."""

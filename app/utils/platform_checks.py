@@ -110,13 +110,25 @@ def is_rclone_installed() -> bool:
 
 def get_rclone_version() -> str | None:
     """Return rclone version string if installed."""
+    import os
+
     exe = get_rclone_executable_path()
-    if not exe:
+    if not exe or not Path(exe).is_file():
         return None
     try:
-        res = subprocess.run([exe, "version"], capture_output=True, text=True, check=True, timeout=5)
-        first_line = res.stdout.strip().splitlines()[0]
-        return first_line
+        flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+        res = subprocess.run(
+            [exe, "version"],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            creationflags=flags,
+            timeout=10,
+        )
+        if res.returncode == 0:
+            lines = res.stdout.strip().splitlines()
+            return lines[0] if lines else "rclone"
+        return None
     except Exception as e:
         logger.warning(f"Error checking rclone version: {e}")
         return None
@@ -124,6 +136,8 @@ def get_rclone_version() -> str | None:
 
 def is_winfsp_installed() -> bool:
     """Check if WinFsp virtual filesystem driver is installed."""
+    import os
+
     paths_to_check = [
         Path("C:/Program Files/WinFsp"),
         Path("C:/Program Files (x86)/WinFsp"),
@@ -134,7 +148,15 @@ def is_winfsp_installed() -> bool:
 
     # Check via sc.exe query
     try:
-        res = subprocess.run(["sc", "query", "winfsp-launcher"], capture_output=True, text=True, timeout=3)
+        flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+        res = subprocess.run(
+            ["sc", "query", "winfsp-launcher"],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            text=True,
+            creationflags=flags,
+            timeout=3,
+        )
         if "RUNNING" in res.stdout or "STOPPED" in res.stdout:
             return True
     except Exception:

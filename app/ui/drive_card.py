@@ -176,7 +176,7 @@ class DriveCard(ctk.CTkFrame):
         # Browse In-App Button (Does not require virtual drive mount)
         browse_btn = ctk.CTkButton(
             actions_frame,
-            text="Browse",
+            text="Browse In-App",
             image=get_symbol_icon("folder", 14, Colors.TEXT_PRIMARY),
             compound="left",
             font=Fonts.BUTTON,

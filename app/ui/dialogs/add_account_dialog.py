@@ -280,45 +280,8 @@ class AddAccountDialog(ctk.CTkToplevel):
         streaming_enabled = "Streaming" in mode_str
         offline_enabled = "Offline" in mode_str
 
-        # If live AuthManager is present and rclone is available, launch real OAuth
-        if self.auth_manager and self.auth_manager.rclone_service.is_available():
-            self.submit_btn.configure(state="disabled", text="Authenticating...")
-            self.cancel_btn.configure(state="disabled")
-            self.status_var.set("Connecting to Google OAuth...")
-
-            def on_status(msg: str):
-                self.after(0, lambda: self.status_var.set(msg))
-
-            def on_success(account: Account):
-                def _done():
-                    self.destroy()
-                    if self.on_account_created:
-                        self.on_account_created(account)
-
-                self.after(0, _done)
-
-            def on_error(err: str):
-                def _err():
-                    self.submit_btn.configure(state="normal", text="Connect with Google")
-                    self.cancel_btn.configure(state="normal")
-                    self.status_var.set("")
-                    messagebox.showerror("Authentication Error", err)
-
-                self.after(0, _err)
-
-            self.auth_manager.start_google_auth(
-                account_name=name,
-                drive_letter=self.letter_var.get(),
-                streaming_enabled=streaming_enabled,
-                offline_enabled=offline_enabled,
-                offline_path=self.offline_path_var.get(),
-                cache_size=self.cache_size_var.get(),
-                on_status_update=on_status,
-                on_success=on_success,
-                on_error=on_error,
-            )
-        else:
-            # When rclone binary is not yet detected on system
+        # Check if auth_manager is present (production) or absent (test harness)
+        if not self.auth_manager:
             account_id = name.lower().replace(" ", "_")
             new_account = Account(
                 id=account_id,
@@ -339,3 +302,47 @@ class AddAccountDialog(ctk.CTkToplevel):
             self.destroy()
             if self.on_account_created:
                 self.on_account_created(new_account)
+            return
+
+        if not self.auth_manager.rclone_service.is_available():
+            messagebox.showerror(
+                "rclone Engine Not Available",
+                "rclone storage engine is not available. Please install or download rclone from Settings before connecting your Google account.",
+            )
+            return
+
+        self.submit_btn.configure(state="disabled", text="Authenticating...")
+        self.cancel_btn.configure(state="disabled")
+        self.status_var.set("Connecting to Google OAuth...")
+
+        def on_status(msg: str):
+            self.after(0, lambda: self.status_var.set(msg))
+
+        def on_success(account: Account):
+            def _done():
+                self.destroy()
+                if self.on_account_created:
+                    self.on_account_created(account)
+
+            self.after(0, _done)
+
+        def on_error(err: str):
+            def _err():
+                self.submit_btn.configure(state="normal", text="Connect with Google")
+                self.cancel_btn.configure(state="normal")
+                self.status_var.set("")
+                messagebox.showerror("Authentication Error", err)
+
+            self.after(0, _err)
+
+        self.auth_manager.start_google_auth(
+            account_name=name,
+            drive_letter=self.letter_var.get(),
+            streaming_enabled=streaming_enabled,
+            offline_enabled=offline_enabled,
+            offline_path=self.offline_path_var.get(),
+            cache_size=self.cache_size_var.get(),
+            on_status_update=on_status,
+            on_success=on_success,
+            on_error=on_error,
+        )

@@ -402,11 +402,17 @@ class CloudBrowserDialog(ctk.CTkToplevel):
                 items = []
 
             def _ui():
+                if not self.winfo_exists():
+                    return
                 self.items = items
                 self.refresh_btn.configure(state="normal")
                 self._render_items(self.items)
 
-            self.after(0, _ui)
+            try:
+                if self.winfo_exists():
+                    self.after(0, _ui)
+            except Exception:
+                pass
 
         threading.Thread(target=_worker, daemon=True).start()
 

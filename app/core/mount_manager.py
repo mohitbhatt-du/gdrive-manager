@@ -52,6 +52,67 @@ class MountManager:
         # Clean unmount on application termination
         atexit.register(self.unmount_all)
 
+        # Cleanup any orphaned rclone mount processes left from prior abnormal terminations
+        try:
+            self.kill_orphaned_rclone_mounts()
+        except Exception as e:
+            logger.debug(f"Initial orphan cleanup completed: {e}")
+
+    @staticmethod
+    def kill_orphaned_rclone_mounts(drive_letter: str | None = None) -> int:
+        """Find and terminate background rclone processes holding a drive letter or spawned by GDriveManager."""
+        killed = 0
+        if os.name != "nt":
+            return 0
+
+        try:
+            cmd = [
+                "powershell",
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                "Get-CimInstance Win32_Process -Filter \"Name = 'rclone.exe'\" | "
+                "Select-Object ProcessId, CommandLine | ConvertTo-Json",
+            ]
+            res = subprocess.run(cmd, capture_output=True, text=True, timeout=5)
+            if res.returncode == 0 and res.stdout.strip():
+                import json
+
+                try:
+                    data = json.loads(res.stdout)
+                except Exception:
+                    data = []
+
+                if isinstance(data, dict):
+                    data = [data]
+
+                target_letter = drive_letter.upper().rstrip("\\") if drive_letter else None
+
+                for proc in data:
+                    pid = proc.get("ProcessId")
+                    cmdline = str(proc.get("CommandLine", ""))
+                    if not pid:
+                        continue
+
+                    is_mount = "mount" in cmdline.lower()
+                    letter_match = target_letter is None or target_letter.lower() in cmdline.lower()
+
+                    if is_mount and letter_match:
+                        logger.info(f"Terminating orphaned rclone mount process (PID: {pid})")
+                        try:
+                            subprocess.run(
+                                ["taskkill", "/F", "/PID", str(pid)],
+                                capture_output=True,
+                                timeout=3,
+                            )
+                            killed += 1
+                        except Exception as e:
+                            logger.warning(f"Failed to taskkill PID {pid}: {e}")
+        except Exception as e:
+            logger.warning(f"Error checking for orphaned rclone processes: {e}")
+
+        return killed
+
     def register_callback(self, cb: Callable[[str, str], None]):
         """Register callback for mount status updates (account_id, new_status)."""
         self._callbacks.append(cb)
@@ -128,10 +189,17 @@ class MountManager:
             letter = account.drive_letter.upper().rstrip("\\")
             occupied = get_occupied_drive_letters()
             if letter in occupied:
-                return (
-                    False,
-                    f"Drive letter {letter} is already occupied by another physical or virtual drive.",
-                )
+                # Check and kill any orphaned background rclone process that may be holding this drive letter
+                killed = self.kill_orphaned_rclone_mounts(letter)
+                if killed > 0:
+                    time.sleep(1.0)
+                    occupied = get_occupied_drive_letters()
+
+                if letter in occupied:
+                    return (
+                        False,
+                        f"Drive letter {letter} is already occupied by another physical or virtual drive.",
+                    )
 
             # 5. Prepare cache directory
             cache_dir = get_app_data_dir() / "vfs_cache" / account.id
@@ -194,41 +262,40 @@ class MountManager:
     def unmount_drive(self, account: Account) -> tuple[bool, str]:
         """Safely unmount an active virtual drive and release the drive letter."""
         with self._lock:
+            letter = account.drive_letter.upper().rstrip("\\")
             session = self.active_mounts.get(account.id)
-            if not session:
-                account.is_mounted = False
-                account.mount_pid = None
-                account.status = "Connected"
-                return True, "Drive was not actively mounted."
+            if session:
+                logger.info(
+                    f"Unmounting {account.display_name} (PID: {session.pid}, Drive: {session.drive_letter})..."
+                )
+                session.status = "Unmounting"
+                self._notify(account.id, "Unmounting")
 
-            logger.info(
-                f"Unmounting {account.display_name} (PID: {session.pid}, Drive: {session.drive_letter})..."
-            )
-            session.status = "Unmounting"
-            self._notify(account.id, "Unmounting")
-
-            proc = session.process
-            try:
-                proc.terminate()
+                proc = session.process
                 try:
-                    proc.wait(timeout=3.0)
-                except subprocess.TimeoutExpired:
-                    logger.warning(f"Process {session.pid} did not exit in 3s; killing force.")
-                    proc.kill()
-                    proc.wait(timeout=2.0)
-            except Exception as e:
-                logger.warning(f"Error terminating mount process {session.pid}: {e}")
+                    proc.terminate()
+                    try:
+                        proc.wait(timeout=3.0)
+                    except subprocess.TimeoutExpired:
+                        logger.warning(f"Process {session.pid} did not exit in 3s; killing force.")
+                        proc.kill()
+                        proc.wait(timeout=2.0)
+                except Exception as e:
+                    logger.warning(f"Error terminating mount process {session.pid}: {e}")
 
-            # Remove from active mounts
-            del self.active_mounts[account.id]
+                # Remove from active mounts
+                del self.active_mounts[account.id]
+
+            # Also force-terminate any orphaned background rclone process holding this drive letter
+            self.kill_orphaned_rclone_mounts(letter)
 
             account.is_mounted = False
             account.mount_pid = None
             account.status = "Connected"
 
-            logger.info(f"Drive {session.drive_letter} unmounted successfully.")
+            logger.info(f"Drive {letter} unmounted successfully.")
             self._notify(account.id, "Connected")
-            return True, f"Drive {session.drive_letter} unmounted safely."
+            return True, f"Drive {letter} unmounted safely."
 
     def is_account_mounted(self, account_id: str) -> bool:
         """Check whether an account is actively mounted."""
@@ -266,20 +333,24 @@ class MountManager:
                         self._notify(account_id, "Error")
 
     def unmount_all(self):
-        """Cleanly unmount all drives on application shutdown."""
+        """Cleanly unmount all drives on application shutdown and terminate all rclone mounts."""
         with self._lock:
-            if not self.active_mounts:
-                return
-
-            logger.info(f"Shutting down {len(self.active_mounts)} active mounts...")
-            for _account_id, session in list(self.active_mounts.items()):
-                try:
-                    session.process.terminate()
-                    session.process.wait(timeout=2.0)
-                except Exception:
+            if self.active_mounts:
+                logger.info(f"Shutting down {len(self.active_mounts)} active mounts...")
+                for _account_id, session in list(self.active_mounts.items()):
                     try:
-                        session.process.kill()
+                        session.process.terminate()
+                        session.process.wait(timeout=2.0)
                     except Exception:
-                        pass
-            self.active_mounts.clear()
-            logger.info("All virtual drives unmounted cleanly.")
+                        try:
+                            session.process.kill()
+                        except Exception:
+                            pass
+                self.active_mounts.clear()
+
+            # Also guarantee all background rclone mounts are terminated
+            self.kill_orphaned_rclone_mounts()
+            try:
+                logger.info("All virtual drives unmounted cleanly.")
+            except Exception:
+                pass

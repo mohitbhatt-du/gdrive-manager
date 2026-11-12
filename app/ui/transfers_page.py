@@ -5,7 +5,7 @@ from collections.abc import Callable
 import customtkinter as ctk
 
 from app.config.theme import Colors, Dimensions, Fonts
-from app.models.transfer_job import TransferJob, get_sample_transfers
+from app.models.transfer_job import TransferJob
 
 
 class TransfersPage(ctk.CTkFrame):
@@ -22,7 +22,7 @@ class TransfersPage(ctk.CTkFrame):
         **kwargs,
     ):
         super().__init__(master, fg_color="transparent", **kwargs)
-        self.jobs = jobs if jobs is not None else get_sample_transfers()
+        self.jobs = jobs if jobs is not None else []
         self.on_pause_job = on_pause_job
         self.on_resume_job = on_resume_job
         self.on_cancel_job = on_cancel_job

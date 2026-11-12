@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.0.2] - 2026-11-12
+
+### Fixed
+- **Rclone Detection in Windows GUI Subsystem**:
+  - Eliminated 5-second subprocess timeouts when probing rclone version by supplying `creationflags=CREATE_NO_WINDOW` and `stdin=subprocess.DEVNULL`, preventing Windows GUI console handle inheritance deadlocks.
+  - Cached rclone engine availability status (`is_available`) to prevent redundant subprocess spawns during UI updates and drive mounting.
+  - Increased timeout thresholds to 10-15s to tolerate Windows Defender on-demand scanning on first executable launch.
+- **Google OAuth Sign-In & Remote Configuration**:
+  - `AddAccountDialog` now mandates real Google OAuth authentication and prevents silently generating dummy placeholder accounts (`remote_test`) when rclone is being detected.
+  - Passed `config_is_local true` to `rclone config create` to guarantee automatic browser launching for OAuth authorization.
+- **Clean Initial Launch State**:
+  - Removed sample accounts (`alex.chen.personal@gmail.com`) from fresh installations so newly installed applications open directly to the clean dashboard empty state (`+ Add Google Drive Account`).
+  - Cleared default mock transfers from transfer activity queue.
+- **Orphaned Mount & Drive Release**:
+  - Added detection and automated termination of orphaned `rclone.exe mount` background processes holding drive letters (e.g., `G:\`, `H:\`).
+  - Added **"Force Unmount All Virtual Drives"** one-click maintenance tool in Settings.
+- **Storage Quota Persistence & Dashboard Refresh**:
+  - Persisted background storage quota updates directly to `accounts.json` so storage metric pills accurately reflect used and total Google Drive cloud storage.
+  - Removed duplicate card layout calls in Dashboard.
+
+---
+
 ## [1.0.1] - 2026-11-12
 
 ### Added

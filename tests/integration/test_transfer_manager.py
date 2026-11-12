@@ -15,7 +15,13 @@ from app.models.transfer_job import TransferJob
 
 @pytest.fixture
 def tm():
-    return TransferManager(max_concurrent=1)
+    return TransferManager(max_concurrent=1, load_samples=True)
+
+
+def test_clean_empty_transfers():
+    """TransferManager should initialize with zero jobs by default in production."""
+    clean_tm = TransferManager(max_concurrent=1)
+    assert len(clean_tm.get_jobs()) == 0
 
 
 def test_initial_sample_jobs(tm):

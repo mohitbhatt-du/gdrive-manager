@@ -15,20 +15,14 @@ logger = get_logger("TransferManager")
 class TransferManager:
     """Manages background transfer subprocesses, telemetry parsing, and lifecycle controls."""
 
-    def __init__(self, max_concurrent: int = 2):
+    def __init__(self, max_concurrent: int = 2, load_samples: bool = False):
         self.max_concurrent = max_concurrent
         self.executor = ThreadPoolExecutor(max_workers=max_concurrent, thread_name_prefix="TransferWorker")
-        self.jobs: list[TransferJob] = []
+        self.jobs: list[TransferJob] = get_sample_transfers() if load_samples else []
         self._active_processes: dict[str, subprocess.Popen] = {}
         self._active_commands: dict[str, list[str]] = {}
         self._lock = threading.Lock()
         self._callbacks: list[Callable[[TransferJob], None]] = []
-
-        # Start with sample transfers for UI preview if no jobs exist
-        self._load_initial_jobs()
-
-    def _load_initial_jobs(self):
-        self.jobs = get_sample_transfers()
 
     def register_callback(self, cb: Callable[[TransferJob], None]):
         """Register callback for real-time job progress updates."""

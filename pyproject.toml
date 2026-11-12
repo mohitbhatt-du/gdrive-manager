@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gdrive-manager"
-version = "1.0.1"
+version = "1.0.2"
 description = "Modern Windows desktop Google Drive manager with virtual drive streaming and selective offline synchronization"
 readme = "README.md"
 license = { text = "MIT" }

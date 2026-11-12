@@ -22,11 +22,23 @@ def manager(tmp_path):
     repo = AccountRepository(storage_path=storage_file)
     rclone = RcloneService()
     cred = CredentialService()
-    return AccountManager(repository=repo, rclone_service=rclone, credential_service=cred)
+    return AccountManager(
+        repository=repo, rclone_service=rclone, credential_service=cred, load_samples_if_empty=True
+    )
+
+
+def test_clean_empty_initial_state(tmp_path):
+    """By default in production, manager initializes with zero accounts if repository is empty."""
+    repo = AccountRepository(storage_path=tmp_path / "empty_acc.json")
+    mgr = AccountManager(
+        repository=repo, rclone_service=RcloneService(), credential_service=CredentialService()
+    )
+    assert len(mgr.get_accounts()) == 0
+    assert mgr.has_real_accounts() is False
 
 
 def test_initial_sample_fallback(manager):
-    """When repo is empty, manager should populate sample accounts for UI demonstration."""
+    """When load_samples_if_empty is set, manager should populate sample accounts for preview."""
     accounts = manager.get_accounts()
     assert len(accounts) >= 4
     assert manager.has_real_accounts() is False

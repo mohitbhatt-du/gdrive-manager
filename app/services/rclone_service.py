@@ -23,6 +23,7 @@ class RcloneService:
         self.custom_config = custom_config_path
         self._rclone_exe: str | None = None
         self._config_path: Path | None = None
+        self._is_available: bool | None = None
 
     @property
     def config_path(self) -> Path:
@@ -58,31 +59,59 @@ class RcloneService:
     @rclone_exe.setter
     def rclone_exe(self, value: str | None):
         self._rclone_exe = value
+        self._is_available = None
 
     @rclone_exe.deleter
     def rclone_exe(self):
         self._rclone_exe = None
+        self._is_available = None
 
     def is_available(self) -> bool:
         """Check whether rclone executable is found and executable."""
+        if self._is_available is True:
+            return True
+
         exe = self.rclone_exe
-        if not exe:
+        if not exe or not Path(exe).is_file():
+            self._is_available = False
             return False
+
         try:
-            res = subprocess.run([exe, "version"], capture_output=True, text=True, timeout=5)
-            return res.returncode == 0
-        except Exception:
+            flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+            res = subprocess.run(
+                [exe, "version"],
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                text=True,
+                creationflags=flags,
+                timeout=10,
+            )
+            self._is_available = res.returncode == 0
+            return self._is_available
+        except Exception as e:
+            logger.warning(f"rclone is_available check failed: {e}")
+            self._is_available = False
             return False
 
     def get_version(self) -> str | None:
         """Return first line of rclone version output."""
         exe = self.rclone_exe
-        if not exe:
+        if not exe or not Path(exe).is_file():
             return None
         try:
-            res = subprocess.run([exe, "version"], capture_output=True, text=True, timeout=5)
+            flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+            res = subprocess.run(
+                [exe, "version"],
+                stdin=subprocess.DEVNULL,
+                capture_output=True,
+                text=True,
+                creationflags=flags,
+                timeout=10,
+            )
             if res.returncode == 0:
-                return res.stdout.strip().splitlines()[0]
+                self._is_available = True
+                lines = res.stdout.strip().splitlines()
+                return lines[0] if lines else "rclone"
         except Exception as e:
             logger.warning(f"Failed to query rclone version: {e}")
         return None
@@ -182,6 +211,7 @@ class RcloneService:
             exe = dest_dir / "rclone.exe"
             if exe.exists():
                 self._rclone_exe = str(exe)
+                self._is_available = True
                 logger.info(f"rclone successfully installed to {exe}")
                 return True
             return False
