@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1B4B" />
+      <stop offset="50%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#0B0F19" />
+    </linearGradient>
+
+    <!-- Border Glow Gradient -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A78BFA" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#7C3AED" stop-opacity="0.4" />
+      <stop offset="100%" stop-color="#06B6D4" stop-opacity="0.6" />
+    </linearGradient>
+
+    <!-- Top Facet (Cloud Streaming - Cyan) -->
+    <linearGradient id="topFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+
+    <!-- Left Facet (Virtual Drive Letter - Deep Violet) -->
+    <linearGradient id="leftFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#6D28D9" />
+    </linearGradient>
+
+    <!-- Right Facet (Offline Storage - Vibrant Purple) -->
+    <linearGradient id="rightFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C084FC" />
+      <stop offset="100%" stop-color="#9333EA" />
+    </linearGradient>
+
+    <!-- Drop Shadows -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.5" />
+    </filter>
+  </defs>
+
+  <!-- Rounded Base Squircle -->
+  <rect x="24" y="24" width="464" height="464" rx="108" fill="url(#bgGrad)" stroke="url(#borderGrad)" stroke-width="6" filter="url(#shadow)" />
+
+  <!-- Ambient Internal Glow -->
+  <circle cx="256" cy="256" r="140" fill="#7C3AED" opacity="0.15" filter="url(#glow)" />
+
+  <!-- Central Interlocking Geometric Cloud Nexus -->
+  <g transform="translate(0, -6)" filter="url(#shadow)">
+    <!-- Top Facet: Isometric Cloud Roof -->
+    <path d="M 256 120 L 372 186 L 256 252 L 140 186 Z" fill="url(#topFacet)" />
+    <!-- Subtle Cloud Highlight on Top Facet -->
+    <path d="M 230 184 C 230 174 240 166 252 166 C 262 166 270 172 273 180 C 278 180 282 184 282 189 C 282 194 278 198 273 198 L 232 198 C 227 198 223 194 223 189 C 223 185 226 182 230 184 Z" fill="#FFFFFF" opacity="0.85" />
+
+    <!-- Left Facet: Virtual Drive Plinth -->
+    <path d="M 140 186 L 256 252 L 256 384 L 140 318 Z" fill="url(#leftFacet)" />
+    <!-- Drive Activity LED / Slot on Left Facet -->
+    <rect x="164" y="238" width="56" height="8" rx="4" transform="matrix(0.866 0.5 0 1 0 0)" fill="#FFFFFF" opacity="0.4" />
+    <circle cx="172" cy="272" r="5" fill="#10B981" opacity="0.9" />
+
+    <!-- Right Facet: Offline Storage Block -->
+    <path d="M 256 252 L 372 186 L 372 318 L 256 384 Z" fill="url(#rightFacet)" />
+    <!-- Sync Indicator on Right Facet -->
+    <path d="M 326 256 A 14 14 0 1 0 310 274" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.75" />
+    <polygon points="328,252 334,260 324,260" fill="#FFFFFF" opacity="0.75" />
+
+    <!-- Central Nexus Node & Lines -->
+    <circle cx="256" cy="252" r="14" fill="#FFFFFF" opacity="0.95" filter="url(#glow)" />
+    <circle cx="256" cy="252" r="7" fill="#7C3AED" />
+  </g>
+</svg>

@@ -36,10 +36,11 @@ def test_hybrid_mode_labels():
 
 def test_hybrid_target_conflict_detection():
     """Test detecting when an offline directory collides with the streaming drive letter."""
+    import os
     def check_conflict(drive_letter: str, offline_path: str) -> bool:
-        clean_letter = drive_letter.upper().rstrip("\\")
-        clean_path = str(Path(offline_path).resolve()).upper()
-        return clean_path.startswith(f"{clean_letter}\\") or clean_path == f"{clean_letter}:"
+        clean_letter = drive_letter.upper().rstrip(":\\")
+        clean_path = os.path.abspath(offline_path).upper()
+        return clean_path.startswith(f"{clean_letter}:\\") or clean_path == f"{clean_letter}:" or clean_path == f"{clean_letter}:\\"
 
     # Valid separate targets
     assert check_conflict("G:", "D:\\GDriveManager\\Personal") is False

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 160" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient for Icon -->
+    <linearGradient id="logoBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1B4B" />
+      <stop offset="50%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#0B0F19" />
+    </linearGradient>
+
+    <!-- Top Facet (Cyan) -->
+    <linearGradient id="logoTopFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+
+    <!-- Left Facet (Violet) -->
+    <linearGradient id="logoLeftFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#6D28D9" />
+    </linearGradient>
+
+    <!-- Right Facet (Purple) -->
+    <linearGradient id="logoRightFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C084FC" />
+      <stop offset="100%" stop-color="#9333EA" />
+    </linearGradient>
+
+    <filter id="logoShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Left Icon Mark (120x120 at 20,20) -->
+  <g transform="translate(20, 20)">
+    <rect x="0" y="0" width="120" height="120" rx="28" fill="url(#logoBgGrad)" stroke="#7C3AED" stroke-width="2" filter="url(#logoShadow)" />
+    
+    <!-- Central Isometric Nexus Symbol -->
+    <g transform="translate(60, 58) scale(0.24)" filter="url(#logoShadow)">
+      <!-- Top Facet -->
+      <path d="M 0 -132 L 116 -66 L 0 0 L -116 -66 Z" fill="url(#logoTopFacet)" />
+      <!-- Left Facet -->
+      <path d="M -116 -66 L 0 0 L 0 132 L -116 66 Z" fill="url(#logoLeftFacet)" />
+      <circle cx="-60" cy="20" r="5" fill="#10B981" />
+      <!-- Right Facet -->
+      <path d="M 0 0 L 116 -66 L 116 66 L 0 132 Z" fill="url(#logoRightFacet)" />
+      <!-- Center Nexus Dot -->
+      <circle cx="0" cy="0" r="14" fill="#FFFFFF" opacity="0.95" />
+      <circle cx="0" cy="0" r="7" fill="#7C3AED" />
+    </g>
+  </g>
+
+  <!-- Typography on Right -->
+  <!-- Product Title -->
+  <text x="166" y="86" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="52" font-weight="800" letter-spacing="-0.5">
+    <tspan fill="#F8FAFC">GDrive </tspan>
+    <tspan fill="#A78BFA">Manager</tspan>
+  </text>
+
+  <!-- Product Subtitle -->
+  <text x="168" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="600" fill="#94A3B8" letter-spacing="2.5">
+    DESKTOP CLOUD SYNC &amp; STREAMING
+  </text>
+  
+  <!-- Subtle accent dot -->
+  <circle cx="512" cy="113" r="3" fill="#06B6D4" />
+</svg>

@@ -19,8 +19,8 @@ def _create_smooth_canvas(size: int = 48) -> Tuple[Image.Image, ImageDraw.ImageD
     return img, draw, scale
 
 def get_gdrive_icon(size: int = 36) -> ctk.CTkImage:
-    """Generate the iconic Google Drive 3-color triangle."""
-    key = f"gdrive_{size}"
+    """Generate the original GDrive Manager geometric cloud nexus icon."""
+    key = f"nexus_icon_{size}"
     if key in _pil_cache:
         final_img = _pil_cache[key]
         return ctk.CTkImage(light_image=final_img, dark_image=final_img, size=(size, size))
@@ -28,35 +28,41 @@ def get_gdrive_icon(size: int = 36) -> ctk.CTkImage:
     img, draw, s = _create_smooth_canvas(size)
     w = size * s
 
-    # Three trapezoid/polygon colors of Google Drive logo:
-    # Yellow (top right), Green (left), Blue (bottom)
-    yellow = (251, 188, 4, 255)  # #FBBC04
-    green = (52, 168, 83, 255)   # #34A853
-    blue = (66, 133, 244, 255)   # #4285F4
+    # Rounded squircle base
+    margin = int(w * 0.04)
+    radius = int(w * 0.22)
+    draw.rounded_rectangle(
+        [margin, margin, w - margin, w - margin],
+        radius=radius,
+        fill=(15, 23, 42, 255),
+        outline=(124, 58, 237, 220),
+        width=max(2, int(w * 0.03))
+    )
 
-    # Yellow top bar
-    draw.polygon([
-        (w * 0.34, w * 0.14),
-        (w * 0.66, w * 0.14),
-        (w * 0.88, w * 0.52),
-        (w * 0.72, w * 0.52)
-    ], fill=yellow)
+    # Isometric Nexus Coordinates
+    cx = w // 2
+    cy = w // 2 - int(w * 0.02)
+    top_y = cy - int(w * 0.28)
+    mid_y = cy
+    bot_y = cy + int(w * 0.28)
+    left_x = cx - int(w * 0.24)
+    right_x = cx + int(w * 0.24)
 
-    # Green left bar
-    draw.polygon([
-        (w * 0.34, w * 0.14),
-        (w * 0.14, w * 0.48),
-        (w * 0.30, w * 0.76),
-        (w * 0.50, w * 0.42)
-    ], fill=green)
+    # 1. Top Facet (Cloud Streaming - Cyan)
+    draw.polygon([(cx, top_y), (right_x, cy - int(w * 0.14)), (cx, mid_y), (left_x, cy - int(w * 0.14))], fill=(6, 182, 212, 255))
+    # 2. Left Facet (Virtual Drive - Deep Violet)
+    draw.polygon([(left_x, cy - int(w * 0.14)), (cx, mid_y), (cx, bot_y), (left_x, cy + int(w * 0.14))], fill=(109, 40, 217, 255))
+    # 3. Right Facet (Offline Sync - Vibrant Purple)
+    draw.polygon([(cx, mid_y), (right_x, cy - int(w * 0.14)), (right_x, cy + int(w * 0.14)), (cx, bot_y)], fill=(168, 85, 247, 255))
 
-    # Blue bottom bar
-    draw.polygon([
-        (w * 0.30, w * 0.76),
-        (w * 0.70, w * 0.76),
-        (w * 0.86, w * 0.52),
-        (w * 0.46, w * 0.52)
-    ], fill=blue)
+    # Facet contrast line
+    lw = max(1, int(w * 0.015))
+    draw.line([(cx, mid_y), (cx, bot_y)], fill=(255, 255, 255, 140), width=lw)
+    draw.line([(cx, top_y), (cx, mid_y)], fill=(255, 255, 255, 120), width=lw)
+
+    # Center Hub Node
+    hub_r = max(2, int(w * 0.04))
+    draw.ellipse([cx - hub_r, mid_y - hub_r, cx + hub_r, mid_y + hub_r], fill=(255, 255, 255, 255))
 
     final_img = img.resize((size, size), Image.Resampling.LANCZOS)
     _pil_cache[key] = final_img

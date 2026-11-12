@@ -34,6 +34,7 @@ from app.ui.logs_page import LogsPage
 from app.ui.tray import SystemTrayManager
 from app.utils.notifications import send_notification
 from app.utils.onboarding import is_onboarding_completed, set_onboarding_completed
+from app.utils.paths import BASE_DIR
 from app.ui.assets import get_gdrive_icon
 from app.utils.logger import get_logger
 
@@ -51,6 +52,22 @@ class MainWindow(ctk.CTk):
         self.configure(fg_color=Colors.BG_MAIN)
         self.enable_tray = enable_tray
         self._notified_jobs = set()
+
+        # Set Windows AppUserModelID & Window/Taskbar Icon
+        try:
+            import ctypes
+            ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("GDriveManager.App")
+        except Exception:
+            pass
+
+        ico_file = BASE_DIR / "assets" / "branding" / "icon.ico"
+        if not ico_file.exists():
+            ico_file = BASE_DIR / "assets" / "icons" / "app_icon.ico"
+        if ico_file.exists():
+            try:
+                self.iconbitmap(str(ico_file))
+            except Exception as e:
+                logger.debug(f"Could not set window icon: {e}")
 
         # Services & Core Managers
         self.rclone_service = RcloneService()

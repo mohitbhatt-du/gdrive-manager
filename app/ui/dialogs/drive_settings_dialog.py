@@ -316,8 +316,8 @@ class DriveSettingsDialog(ctk.CTkToplevel):
         assigned_letter = self.letter_var.get().upper().rstrip("\\")
 
         if self.offline_var.get() and offline_p:
-            clean_off = str(Path(offline_p).resolve()).upper()
-            if clean_off.startswith(f"{assigned_letter}\\") or clean_off == f"{assigned_letter}:":
+            clean_off = os.path.abspath(offline_p).upper()
+            if clean_off.startswith(f"{assigned_letter}\\") or clean_off == f"{assigned_letter}:" or clean_off == f"{assigned_letter}:\\":
                 messagebox.showerror(
                     "Storage Target Conflict",
                     f"Hybrid Mode Violation: The offline directory cannot be placed inside the virtual streaming drive {assigned_letter}:\\!\n\n"
