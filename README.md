@@ -71,3 +71,12 @@ python main.py
 ```powershell
 pytest -v tests/
 ```
+
+### Packaging Standalone Executable (Distribution)
+To build a self-contained Windows executable bundling `rclone.exe`, Pillow assets, and CustomTkinter:
+```powershell
+python build.py
+```
+The compiled output is placed in:
+`dist/GDriveManager/GDriveManager.exe`
+
